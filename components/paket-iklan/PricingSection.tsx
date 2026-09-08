@@ -1,18 +1,13 @@
 "use client";
 
 import React, { useState } from "react";
+import Link from "next/link";
 import {
   CheckCircle2,
   Star,
   ArrowRight,
   ShieldCheck,
-  TrendingUp,
-  Image as ImageIcon,
-  BarChart3,
   Sparkles,
-  Award,
-  Clock,
-  Headphones,
 } from "lucide-react";
 import ListingSubmissionModal, { PackageData } from "./ListingSubmissionModal";
 
@@ -175,12 +170,18 @@ export default function PricingSection() {
             </div>
 
             {/* CTA */}
-            <button
-              type="button"
-              onClick={() => handleSelectPackage(card1)}
+            <Link
+              href={`/pembayaran?plan=single&billing=${billingMode}`}
               className="w-full mt-5 inline-flex items-center justify-center px-4 py-3 rounded-[10px] bg-blue-50 text-[#3D77EE] hover:bg-[#3D77EE] hover:text-white text-sm font-bold transition-all"
             >
               Pilih Paket Single
+            </Link>
+            <button
+              type="button"
+              onClick={() => handleSelectPackage(card1)}
+              className="w-full text-center text-[11px] text-[#687280] hover:text-[#3D77EE] mt-2 font-medium cursor-pointer"
+            >
+              Atau isi formulir draft listing dulu
             </button>
 
             {/* Features */}
@@ -240,13 +241,19 @@ export default function PricingSection() {
             </div>
 
             {/* Primary Action CTA */}
-            <button
-              type="button"
-              onClick={() => handleSelectPackage(card2)}
+            <Link
+              href={`/pembayaran?plan=multi&billing=${billingMode}`}
               className="w-full mt-5 inline-flex items-center justify-center gap-2 px-4 py-3.5 rounded-[10px] bg-[#3D77EE] hover:bg-[#2B55AB] text-white text-sm font-bold shadow-md shadow-blue-500/25 transition-all transform hover:scale-[1.01] active:scale-[0.98]"
             >
               <span>Sewa Lapak Sekarang</span>
               <ArrowRight className="w-4 h-4" />
+            </Link>
+            <button
+              type="button"
+              onClick={() => handleSelectPackage(card2)}
+              className="w-full text-center text-[11px] text-[#687280] hover:text-[#3D77EE] mt-2 font-medium cursor-pointer"
+            >
+              Atau isi formulir draft listing dulu
             </button>
 
             {/* Features */}
@@ -300,12 +307,18 @@ export default function PricingSection() {
             </div>
 
             {/* CTA */}
-            <button
-              type="button"
-              onClick={() => handleSelectPackage(card3)}
+            <Link
+              href={`/pembayaran?plan=juragan&billing=${billingMode}`}
               className="w-full mt-5 inline-flex items-center justify-center px-4 py-3 rounded-[10px] bg-blue-50 text-[#3D77EE] hover:bg-[#3D77EE] hover:text-white text-sm font-bold transition-all"
             >
               Pilih Paket Juragan
+            </Link>
+            <button
+              type="button"
+              onClick={() => handleSelectPackage(card3)}
+              className="w-full text-center text-[11px] text-[#687280] hover:text-[#3D77EE] mt-2 font-medium cursor-pointer"
+            >
+              Atau isi formulir draft listing dulu
             </button>
 
             {/* Features */}

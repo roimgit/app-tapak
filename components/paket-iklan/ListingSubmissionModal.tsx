@@ -1,7 +1,8 @@
 "use client";
 
 import React, { useState } from "react";
-import { X, CheckCircle2, ShieldCheck, QrCode, ArrowRight } from "lucide-react";
+import Link from "next/link";
+import { X, CheckCircle2, ShieldCheck, ArrowRight } from "lucide-react";
 
 export interface PackageData {
   id: string;
@@ -240,19 +241,29 @@ export default function ListingSubmissionModal({
                 <span className="text-slate-500">Paket Terpilih:</span>
                 <span className="font-semibold text-[#111827]">{selectedPackage.name}</span>
               </div>
-              <div className="flex justify-between text-xs">
-                <span className="text-slate-500">Total Tagihan:</span>
-                <span className="font-bold text-[#3D77EE]">{selectedPackage.price}</span>
+              <div className="flex justify-between pt-2 border-t border-slate-200">
+                <span className="text-slate-600 font-bold">Total Tagihan:</span>
+                <span className="font-black text-[#3D77EE]">{selectedPackage.price}</span>
               </div>
             </div>
 
-            <button
-              type="button"
-              onClick={onClose}
-              className="mt-6 w-full py-3 rounded-[10px] bg-slate-900 text-white text-sm font-semibold hover:bg-black transition-colors"
-            >
-              Tutup
-            </button>
+            <div className="mt-6 flex flex-col gap-2.5">
+              <Link
+                href={`/pembayaran?plan=${selectedPackage.id}`}
+                onClick={onClose}
+                className="w-full py-3 rounded-[10px] bg-[#3D77EE] hover:bg-[#2B55AB] text-white text-xs font-bold transition-all shadow-md shadow-blue-500/20 flex items-center justify-center gap-1.5"
+              >
+                <span>Bayar Online Sekarang (QRIS / VA)</span>
+                <ArrowRight className="w-3.5 h-3.5" />
+              </Link>
+              <button
+                type="button"
+                onClick={onClose}
+                className="w-full py-2.5 rounded-[10px] bg-slate-100 text-slate-700 text-xs font-semibold hover:bg-slate-200 transition-colors cursor-pointer"
+              >
+                Tutup &amp; Tunggu Kontak Admin
+              </button>
+            </div>
           </div>
         )}
       </div>
