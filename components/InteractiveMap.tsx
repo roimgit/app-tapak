@@ -9,6 +9,7 @@ interface InteractiveMapProps {
   listings: ListingItem[];
   selectedListingId?: string | null;
   onSelectListing?: (id: string) => void;
+  onViewDetail?: (id: string) => void;
   onBoundsChange?: (bounds: BoundsFilter) => void;
   center?: [number, number];
   zoom?: number;
@@ -18,6 +19,7 @@ export default function InteractiveMap({
   listings,
   selectedListingId,
   onSelectListing,
+  onViewDetail,
   onBoundsChange,
   center = [-6.2368, 106.8087],
   zoom = 12,
@@ -112,7 +114,7 @@ export default function InteractiveMap({
               ${formatRupiah(item.price)}<span style="font-size: 11px; font-weight: 400; color: #687280;">/bln</span>
             </div>
             <div style="margin-top: 6px;">
-              <a href="/property/${item.slug}" style="display: inline-block; background: #3D77EE; color: white; padding: 4px 10px; border-radius: 6px; font-size: 11px; font-weight: 600; text-decoration: none;">Lihat Rincian</a>
+              <button onclick="window.__tapak_open_detail && window.__tapak_open_detail('${item.id}')" style="display: inline-block; background: #3D77EE; color: white; border: none; padding: 5px 12px; border-radius: 6px; font-size: 11px; font-weight: 700; cursor: pointer;">Lihat Detail di Panel</button>
             </div>
           </div>
         `;
@@ -158,6 +160,14 @@ export default function InteractiveMap({
       }
     }
   }, [selectedListingId, listings]);
+
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      (window as unknown as { __tapak_open_detail?: (id: string) => void }).__tapak_open_detail = (id: string) => {
+        onViewDetail?.(id);
+      };
+    }
+  }, [onViewDetail]);
 
   return (
     <div className="relative w-full h-full min-h-[400px] rounded-[18px] overflow-hidden border border-slate-200/80 shadow-inner">

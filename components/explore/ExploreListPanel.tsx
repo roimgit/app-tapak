@@ -9,6 +9,7 @@ interface ExploreListPanelProps {
   listings: ListingItem[];
   selectedListingId: string | null;
   onSelectListing: (id: string) => void;
+  onViewDetail?: (id: string) => void;
   onReset: () => void;
   mobileView: "list" | "map";
 }
@@ -17,6 +18,7 @@ export default function ExploreListPanel({
   listings,
   selectedListingId,
   onSelectListing,
+  onViewDetail,
   onReset,
   mobileView,
 }: ExploreListPanelProps) {
@@ -42,6 +44,7 @@ export default function ExploreListPanel({
               layout="horizontal"
               isSelected={selectedListingId === listing.id}
               onSelect={onSelectListing}
+              onViewDetail={onViewDetail}
             />
           ))}
         </div>

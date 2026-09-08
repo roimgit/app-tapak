@@ -11,6 +11,7 @@ interface PropertyCardProps {
   listing: ListingItem;
   layout?: "grid" | "horizontal";
   onSelect?: (id: string) => void;
+  onViewDetail?: (id: string) => void;
   isSelected?: boolean;
 }
 
@@ -18,6 +19,7 @@ export default function PropertyCard({
   listing,
   layout = "grid",
   onSelect,
+  onViewDetail,
   isSelected = false,
 }: PropertyCardProps) {
   const isHorizontal = layout === "horizontal";
@@ -49,13 +51,27 @@ export default function PropertyCard({
             <span className="truncate">{listing.district}, {listing.city}</span>
           </div>
 
-          <Link
-            href={`/property/${listing.slug}`}
-            className="block font-semibold text-base text-[#111827] group-hover:text-[#3D77EE] transition-colors line-clamp-1 mb-2.5"
-            title={listing.title}
-          >
-            {listing.title}
-          </Link>
+          {onViewDetail ? (
+            <button
+              type="button"
+              onClick={(e) => {
+                e.stopPropagation();
+                onViewDetail(listing.id);
+              }}
+              className="text-left font-semibold text-base text-[#111827] group-hover:text-[#3D77EE] transition-colors line-clamp-1 mb-2.5 w-full cursor-pointer"
+              title={listing.title}
+            >
+              {listing.title}
+            </button>
+          ) : (
+            <Link
+              href={`/property/${listing.slug}`}
+              className="block font-semibold text-base text-[#111827] group-hover:text-[#3D77EE] transition-colors line-clamp-1 mb-2.5"
+              title={listing.title}
+            >
+              {listing.title}
+            </Link>
+          )}
 
           <div className="flex items-center gap-4 py-2 border-y border-slate-100 text-xs text-[#687280]">
             <div className="flex items-center gap-1.5" title={`${listing.bedrooms} Kamar Tidur`}>
@@ -84,12 +100,25 @@ export default function PropertyCard({
             </div>
           </div>
 
-          <Link
-            href={`/property/${listing.slug}`}
-            className="px-3.5 py-2 text-xs font-semibold text-white bg-[#3D77EE] hover:bg-[#2B55AB] rounded-[10px] transition-colors inline-flex items-center shadow-xs"
-          >
-            Lihat Detail
-          </Link>
+          {onViewDetail ? (
+            <button
+              type="button"
+              onClick={(e) => {
+                e.stopPropagation();
+                onViewDetail(listing.id);
+              }}
+              className="px-3.5 py-2 text-xs font-semibold text-white bg-[#3D77EE] hover:bg-[#2B55AB] rounded-[10px] transition-colors inline-flex items-center shadow-xs cursor-pointer active:scale-95"
+            >
+              Lihat Detail
+            </button>
+          ) : (
+            <Link
+              href={`/property/${listing.slug}`}
+              className="px-3.5 py-2 text-xs font-semibold text-white bg-[#3D77EE] hover:bg-[#2B55AB] rounded-[10px] transition-colors inline-flex items-center shadow-xs"
+            >
+              Lihat Detail
+            </Link>
+          )}
         </div>
       </div>
     </div>

@@ -5,6 +5,7 @@ import dynamic from "next/dynamic";
 import { ListingItem } from "@/lib/types";
 import ExploreFilterBar from "./explore/ExploreFilterBar";
 import ExploreListPanel from "./explore/ExploreListPanel";
+import ExploreDetailPanel from "./explore/ExploreDetailPanel";
 
 const InteractiveMap = dynamic(() => import("@/components/InteractiveMap"), {
   ssr: false,
@@ -34,6 +35,7 @@ export default function ExploreClient({
   const [selectedListingId, setSelectedListingId] = useState<string | null>(
     initialListings[0]?.id || null
   );
+  const [detailedListingId, setDetailedListingId] = useState<string | null>(null);
   const [mobileView, setMobileView] = useState<"list" | "map">("list");
 
   const filteredListings = useMemo(() => {
@@ -66,6 +68,21 @@ export default function ExploreClient({
     setSelectedListingId(id);
   }, []);
 
+  const handleViewDetail = useCallback((id: string) => {
+    setDetailedListingId(id);
+    setSelectedListingId(id);
+    setMobileView("list");
+  }, []);
+
+  const handleBackToList = useCallback(() => {
+    setDetailedListingId(null);
+  }, []);
+
+  const detailedListing = useMemo(() => {
+    if (!detailedListingId) return null;
+    return initialListings.find((item) => item.id === detailedListingId) || null;
+  }, [detailedListingId, initialListings]);
+
   const hasActiveFilters = Boolean(searchQuery || selectedType || selectedTier);
 
   return (
@@ -84,13 +101,27 @@ export default function ExploreClient({
       />
 
       <div className="flex-1 flex overflow-hidden">
-        <ExploreListPanel
-          listings={filteredListings}
-          selectedListingId={selectedListingId}
-          onSelectListing={handleSelectListing}
-          onReset={handleReset}
-          mobileView={mobileView}
-        />
+        {detailedListing ? (
+          <div
+            className={`w-full lg:w-[45%] h-full overflow-hidden transition-all ${
+              mobileView === "map" ? "hidden lg:block" : "block"
+            }`}
+          >
+            <ExploreDetailPanel
+              listing={detailedListing}
+              onBack={handleBackToList}
+            />
+          </div>
+        ) : (
+          <ExploreListPanel
+            listings={filteredListings}
+            selectedListingId={selectedListingId}
+            onSelectListing={handleSelectListing}
+            onViewDetail={handleViewDetail}
+            onReset={handleReset}
+            mobileView={mobileView}
+          />
+        )}
 
         <div
           className={`w-full lg:w-[55%] h-full p-4 lg:pl-0 shrink-0 transition-all ${
@@ -102,6 +133,7 @@ export default function ExploreClient({
               listings={filteredListings}
               selectedListingId={selectedListingId}
               onSelectListing={handleSelectListing}
+              onViewDetail={handleViewDetail}
               center={[-6.2368, 106.8087]}
               zoom={12}
             />

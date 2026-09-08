@@ -1,7 +1,9 @@
 import React from "react";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
+import PromoModal from "@/components/PromoModal";
 import HeroSearchSection from "@/components/home/HeroSearchSection";
+import PromoSection from "@/components/home/PromoSection";
 import CategorySection from "@/components/home/CategorySection";
 import FeaturedSection from "@/components/home/FeaturedSection";
 import PillarsSection from "@/components/home/PillarsSection";
@@ -15,8 +17,10 @@ export default async function HomePage() {
   return (
     <div className="min-h-screen flex flex-col bg-[#F3F6FB]">
       <Navbar />
+      <PromoModal />
       <main className="flex-1">
         <HeroSearchSection />
+        <PromoSection />
         <CategorySection />
         <FeaturedSection listings={featuredListings} />
         <PillarsSection />

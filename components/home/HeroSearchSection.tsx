@@ -4,8 +4,8 @@ import { Search, MapPin, Building2, ShieldCheck } from "lucide-react";
 
 export default function HeroSearchSection() {
   return (
-    <section className="relative pt-12 pb-20 sm:pt-20 sm:pb-28 overflow-hidden">
-      <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full max-w-7xl h-96 bg-gradient-to-b from-blue-100/60 to-transparent pointer-events-none rounded-full blur-3xl -z-10" />
+    <section className="relative pt-8 pb-10 sm:pt-12 sm:pb-12 overflow-hidden">
+      <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full max-w-7xl h-72 bg-gradient-to-b from-blue-100/60 to-transparent pointer-events-none rounded-full blur-3xl -z-10" />
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
         <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-blue-50 border border-blue-200 text-[#3D77EE] text-xs font-semibold mb-6 shadow-xs">
@@ -13,16 +13,9 @@ export default function HeroSearchSection() {
           <span>Standar Baru Verifikasi Properti Tanpa Biaya Tersembunyi</span>
         </div>
 
-        <h1 className="text-3xl sm:text-5xl lg:text-6xl font-extrabold text-[#111827] tracking-tight max-w-4xl mx-auto leading-[1.15]">
-          Temukan Hunian Terverifikasi dengan{" "}
-          <span className="text-[#3D77EE]">Transparansi Total</span>.
-        </h1>
+        <h1 className="sr-only">Pencarian Hunian Terverifikasi Tapak.</h1>
 
-        <p className="mt-5 text-base sm:text-lg text-[#687280] max-w-2xl mx-auto leading-relaxed">
-          Platform properti pertama di Indonesia yang menginspeksi legalitas sertifikat, keaslian foto fisik, serta rincian biaya IPL dan utilitas hingga rupiah terkecil.
-        </p>
-
-        <div className="mt-10 max-w-4xl mx-auto bg-white p-3 sm:p-4 rounded-[18px] shadow-xl shadow-blue-500/10 border border-slate-200">
+        <div className="mt-4 max-w-4xl mx-auto bg-white p-3 sm:p-4 rounded-[18px] shadow-xl shadow-blue-500/10 border border-slate-200">
           <form action="/explore" method="GET" className="grid grid-cols-1 md:grid-cols-12 gap-3 items-center">
             <div className="md:col-span-5 flex items-center gap-3 px-3 py-2.5 bg-slate-50 hover:bg-slate-100/80 rounded-[10px] border border-slate-200 transition-colors">
               <MapPin className="w-5 h-5 text-[#3D77EE] shrink-0" />
