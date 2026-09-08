@@ -1,0 +1,57 @@
+// Prisma schema for Tapak.
+// Sesuai dengan spesifikasi arsitektur PostGIS & Tapak Rules
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+enum VerificationTier {
+  NONE
+  BRONZE
+  SILVER
+  GOLD
+}
+
+model Listing {
+  id                String           @id @default(cuid())
+  title             String
+  slug              String           @unique
+  description       String
+  price             Decimal          @db.Decimal(15, 2)
+  deposit           Decimal?         @db.Decimal(15, 2)
+  maintenance_fee   Decimal?         @db.Decimal(15, 2)
+  utility_estimate  Decimal?         @db.Decimal(15, 2)
+  verification_tier VerificationTier @default(NONE)
+
+  property_type     String           // Apartemen, Rumah, Kost, Ruko, Vila
+  bedrooms          Int              @default(1)
+  bathrooms         Int              @default(1)
+  area_sqm          Float            // Luas dalam m2
+  address           String
+  district          String           // Kecamatan/Area (e.g. SCBD, BSD, Setiabudi)
+  city              String           // Jakarta Selatan, Tangerang Selatan, dll.
+
+  latitude          Float
+  longitude         Float
+  location          Unsupported("geometry(Point, 4326)")?
+
+  images            String[]
+  amenities         String[]
+  is_available      Boolean          @default(true)
+
+  agent_name        String           @default("Konsultan Tapak")
+  agent_phone       String           @default("6281234567890")
+
+  created_at        DateTime         @default(now())
+  updated_at        DateTime         @updatedAt
+
+  @@index([city, district])
+  @@index([verification_tier])
+  @@map("listings")
+}

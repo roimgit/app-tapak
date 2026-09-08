@@ -1,0 +1,113 @@
+@import "tailwindcss";
+
+@layer base {
+  :root {
+    --primary: #3D77EE;
+    --primary-dark: #2B55AB;
+    --sky: #0EA5E9;
+    --accent-light: #93C5FD;
+    --bg-main: #F3F6FB;
+    --card-bg: #FFFFFF;
+    --text-main: #111827;
+    --text-muted: #687280;
+
+    --radius-btn: 10px;
+    --radius-card: 18px;
+    --radius-modal: 24px;
+  }
+
+  body {
+    font-family: var(--font-inter), system-ui, -apple-system, sans-serif;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    font-family: var(--font-poppins), var(--font-inter), sans-serif;
+  }
+}
+
+/* Brand Wordmark */
+.brand-wordmark {
+  font-family: Arial, "Helvetica Neue", sans-serif;
+  font-weight: 800;
+  letter-spacing: -0.03em;
+}
+
+/* Custom Pin Tetes Air Biru Tapak. */
+.tapak-pin {
+  position: relative;
+  width: 38px;
+  height: 38px;
+  background-color: #3D77EE;
+  border-radius: 50% 50% 50% 0;
+  transform: rotate(-45deg);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 6px 14px rgba(61, 119, 238, 0.45);
+  border: 2.5px solid #FFFFFF;
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.tapak-pin:hover,
+.tapak-pin.active {
+  transform: rotate(-45deg) scale(1.15);
+  background-color: #2B55AB;
+  box-shadow: 0 8px 18px rgba(43, 85, 171, 0.55);
+  z-index: 999;
+}
+
+.tapak-pin-content {
+  transform: rotate(45deg);
+  color: #FFFFFF;
+  font-weight: 700;
+  font-size: 13px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+}
+
+/* Cluster Pin Tetes Air Biru Tapak. */
+.tapak-cluster-pin {
+  width: 44px;
+  height: 44px;
+  background-color: #3D77EE;
+  border-radius: 50% 50% 50% 0;
+  transform: rotate(-45deg);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 8px 18px rgba(61, 119, 238, 0.4);
+  border: 3px solid #FFFFFF;
+  cursor: pointer;
+  transition: transform 0.2s ease;
+}
+
+.tapak-cluster-pin:hover {
+  transform: rotate(-45deg) scale(1.12);
+  background-color: #2B55AB;
+}
+
+.tapak-cluster-number {
+  transform: rotate(45deg);
+  color: #FFFFFF;
+  font-weight: 800;
+  font-size: 14px;
+}
+
+/* Custom scrollbars */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: #F3F6FB;
+}
+::-webkit-scrollbar-thumb {
+  background: #CBD5E1;
+  border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #94A3B8;
+}
