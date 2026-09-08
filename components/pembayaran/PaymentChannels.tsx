@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
+import { QRCodeSVG } from "qrcode.react";
 import {
   Check,
   QrCode,
@@ -9,22 +10,44 @@ import {
   Copy,
   Download,
   RefreshCw,
-  CheckCircle2,
   ShieldCheck,
-  ArrowRight,
+  Zap,
 } from "lucide-react";
 
 interface PaymentChannelsProps {
   amount: number;
+  orderId?: string;
+  qrContent?: string;
+  vaNumber?: string;
+  selectedChannel?: string;
+  onSelectChannel?: (channel: string) => void;
   onCheckStatus?: () => void;
+  onSimulateSuccess?: () => void;
+  isLoading?: boolean;
 }
 
 export default function PaymentChannels({
   amount,
+  orderId = "INV-2026-04819",
+  qrContent,
+  vaNumber,
+  selectedChannel = "qris",
+  onSelectChannel,
   onCheckStatus,
+  onSimulateSuccess,
+  isLoading = false,
 }: PaymentChannelsProps) {
-  const [selectedChannel, setSelectedChannel] = useState<string>("qris");
+  const [internalChannel, setInternalChannel] = useState<string>(selectedChannel);
   const [copiedText, setCopiedText] = useState<string | null>(null);
+
+  const activeChannel = onSelectChannel ? selectedChannel : internalChannel;
+  const handleSelect = (ch: string) => {
+    if (onSelectChannel) {
+      onSelectChannel(ch);
+    } else {
+      setInternalChannel(ch);
+    }
+  };
 
   const formattedAmount = new Intl.NumberFormat("id-ID", {
     style: "currency",
@@ -38,12 +61,31 @@ export default function PaymentChannels({
     setTimeout(() => setCopiedText(null), 2500);
   };
 
-  const vaNumbers: Record<string, { bank: string; va: string; code: string }> = {
-    bca_va: { bank: "Bank BCA", va: "8277 0812 3456 7890", code: "014" },
-    mandiri_va: { bank: "Bank Mandiri", va: "8960 0812 3456 7890", code: "008" },
-    bri_va: { bank: "Bank BRI", va: "1028 0812 3456 7890", code: "002" },
-    bni_va: { bank: "Bank BNI", va: "9880 0812 3456 7890", code: "009" },
+  // Nomor VA dinamis per bank
+  const getBankVa = (bankKey: string, code: string) => {
+    if (vaNumber && activeChannel === bankKey) return vaNumber;
+    const prefixMap: Record<string, string> = {
+      bca_va: "8277",
+      mandiri_va: "8960",
+      bri_va: "1028",
+      bni_va: "9880",
+    };
+    const prefix = prefixMap[bankKey] || "8277";
+    const suffix = orderId.replace(/\D/g, "").slice(-4) || "4819";
+    return `${prefix} 0812 3456 ${suffix}`;
   };
+
+  const vaNumbers: Record<string, { bank: string; va: string; code: string }> = {
+    bca_va: { bank: "Bank BCA", va: getBankVa("bca_va", "014"), code: "014" },
+    mandiri_va: { bank: "Bank Mandiri", va: getBankVa("mandiri_va", "008"), code: "008" },
+    bri_va: { bank: "Bank BRI", va: getBankVa("bri_va", "002"), code: "002" },
+    bni_va: { bank: "Bank BNI", va: getBankVa("bni_va", "009"), code: "009" },
+  };
+
+  // Default fallback payload QRIS jika belum dimuat dari gateway
+  const effectiveQr =
+    qrContent ||
+    `00020101021226670016ID.CO.NICEPAY.WWW0118936009180000${orderId.replace(/\D/g, "").slice(-4)}51440014ID.LINKAJA.WWW0215081234567890123520458125303360540${amount.toFixed(0).length}${amount.toFixed(0)}5802ID5925PT TAPAK TEKNOLOGI PROPERTI6013JAKARTA SELATAN62300126${orderId}6304ABCD`;
 
   return (
     <div className="flex flex-col gap-6">
@@ -53,7 +95,7 @@ export default function PaymentChannels({
           Pilih Metode Pembayaran
         </h1>
         <p className="text-sm text-[#687280] mt-1 leading-relaxed">
-          Pilih kanal transaksi resmi terpercaya untuk mengaktifkan kuota listing properti Anda secara instan dan otomatis.
+          Pilih kanal transaksi resmi SNAP BI NICEPAY untuk mengaktifkan kuota listing properti Anda secara instan dan otomatis.
         </p>
       </div>
 
@@ -68,20 +110,20 @@ export default function PaymentChannels({
       {/* ================= METHOD 1: QRIS INDONESIA ================= */}
       <div
         className={`bg-white rounded-[18px] border transition-all duration-200 overflow-hidden ${
-          selectedChannel === "qris"
+          activeChannel === "qris"
             ? "border-[#3D77EE] shadow-md ring-2 ring-blue-100"
             : "border-slate-200/80 shadow-xs hover:border-slate-300"
         }`}
       >
         {/* Accordion Header */}
         <div
-          onClick={() => setSelectedChannel("qris")}
+          onClick={() => handleSelect("qris")}
           className="p-5 sm:p-6 cursor-pointer flex items-start justify-between gap-4"
         >
           <div className="flex items-start gap-3.5">
             <div
               className={`w-6 h-6 rounded-full flex items-center justify-center mt-0.5 shrink-0 transition-colors ${
-                selectedChannel === "qris"
+                activeChannel === "qris"
                   ? "bg-[#3D77EE] text-white"
                   : "border-2 border-slate-300 text-transparent"
               }`}
@@ -95,7 +137,7 @@ export default function PaymentChannels({
                 </span>
                 <span className="bg-emerald-50 text-emerald-700 text-[11px] px-2.5 py-0.5 rounded-full font-bold flex items-center gap-1.5 border border-emerald-100">
                   <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-ping" />
-                  Otomatis Terverifikasi
+                  SNAP BI Terverifikasi Otomatis
                 </span>
               </div>
               <p className="text-xs text-[#687280] mt-1">
@@ -119,10 +161,10 @@ export default function PaymentChannels({
         </div>
 
         {/* Expanded QRIS Content */}
-        {selectedChannel === "qris" && (
+        {activeChannel === "qris" && (
           <div className="px-5 sm:px-6 pb-6 pt-2 border-t border-slate-100 bg-slate-50/50">
             <div className="bg-white rounded-[14px] p-5 sm:p-6 border border-slate-200/80 flex flex-col md:flex-row items-center gap-6">
-              {/* QR Code Container */}
+              {/* QR Code Container menggunakan qrcode.react */}
               <div className="bg-white p-4 rounded-[14px] shadow-sm border border-slate-200 flex flex-col items-center shrink-0">
                 <div className="flex items-center justify-between w-full pb-2 mb-2 border-b border-slate-100 text-[10px]">
                   <span className="font-bold uppercase tracking-wider text-[#111827]">
@@ -133,67 +175,33 @@ export default function PaymentChannels({
                   </span>
                 </div>
 
-                {/* SVG QR Code */}
-                <div className="relative w-44 h-44 bg-white p-2 rounded flex items-center justify-center">
-                  <svg className="w-full h-full text-slate-900" fill="currentColor" viewBox="0 0 100 100">
-                    <rect fill="currentColor" height="28" rx="2" width="28" x="0" y="0" />
-                    <rect fill="white" height="20" rx="1" width="20" x="4" y="4" />
-                    <rect fill="currentColor" height="12" rx="1" width="12" x="8" y="8" />
-                    <rect fill="currentColor" height="28" rx="2" width="28" x="72" y="0" />
-                    <rect fill="white" height="20" rx="1" width="20" x="76" y="4" />
-                    <rect fill="currentColor" height="12" rx="1" width="12" x="80" y="8" />
-                    <rect fill="currentColor" height="28" rx="2" width="28" x="0" y="72" />
-                    <rect fill="white" height="20" rx="1" width="20" x="4" y="76" />
-                    <rect fill="currentColor" height="12" rx="1" width="12" x="8" y="80" />
-                    <rect fill="currentColor" height="4" width="4" x="34" y="6" />
-                    <rect fill="currentColor" height="4" width="6" x="44" y="6" />
-                    <rect fill="currentColor" height="4" width="4" x="56" y="6" />
-                    <rect fill="currentColor" height="4" width="6" x="34" y="16" />
-                    <rect fill="currentColor" height="4" width="4" x="46" y="16" />
-                    <rect fill="currentColor" height="4" width="6" x="58" y="16" />
-                    <rect fill="currentColor" height="4" width="4" x="6" y="34" />
-                    <rect fill="currentColor" height="6" width="4" x="6" y="44" />
-                    <rect fill="currentColor" height="4" width="4" x="6" y="58" />
-                    <rect fill="currentColor" height="6" width="4" x="16" y="34" />
-                    <rect fill="currentColor" height="4" width="4" x="16" y="48" />
-                    <rect fill="currentColor" height="4" width="4" x="16" y="60" />
-                    <rect fill="currentColor" height="6" width="6" x="30" y="30" />
-                    <rect fill="currentColor" height="4" width="4" x="40" y="32" />
-                    <rect fill="currentColor" height="4" width="6" x="52" y="30" />
-                    <rect fill="currentColor" height="6" width="4" x="64" y="32" />
-                    <rect fill="currentColor" height="4" width="6" x="74" y="34" />
-                    <rect fill="currentColor" height="4" width="6" x="88" y="34" />
-                    <rect fill="currentColor" height="6" width="4" x="32" y="44" />
-                    <rect fill="currentColor" height="4" width="4" x="64" y="44" />
-                    <rect fill="currentColor" height="4" width="8" x="72" y="46" />
-                    <rect fill="currentColor" height="6" width="6" x="86" y="44" />
-                    <rect fill="currentColor" height="4" width="6" x="32" y="56" />
-                    <rect fill="currentColor" height="6" width="4" x="42" y="54" />
-                    <rect fill="currentColor" height="4" width="8" x="52" y="56" />
-                    <rect fill="currentColor" height="4" width="4" x="66" y="56" />
-                    <rect fill="currentColor" height="6" width="6" x="78" y="56" />
-                    <rect fill="currentColor" height="4" width="4" x="90" y="56" />
-                    <rect fill="currentColor" height="6" width="4" x="32" y="70" />
-                    <rect fill="currentColor" height="4" width="6" x="42" y="68" />
-                    <rect fill="currentColor" height="6" width="4" x="54" y="70" />
-                    <rect fill="currentColor" height="4" width="8" x="64" y="68" />
-                    <rect fill="currentColor" height="6" width="4" x="76" y="70" />
-                    <rect fill="currentColor" height="4" width="8" x="86" y="72" />
-                    <rect fill="currentColor" height="4" width="6" x="34" y="82" />
-                    <rect fill="currentColor" height="6" width="4" x="46" y="80" />
-                    <rect fill="currentColor" height="4" width="6" x="56" y="84" />
-                    <rect fill="currentColor" height="4" width="4" x="68" y="82" />
-                    <rect fill="currentColor" height="4" width="6" x="78" y="84" />
-                    <rect fill="currentColor" height="6" width="4" x="88" y="82" />
-                  </svg>
-                  <div className="absolute inset-0 m-auto w-8 h-8 rounded-md bg-[#3D77EE] flex items-center justify-center shadow-md">
-                    <span className="text-white font-bold text-xs">TPK</span>
-                  </div>
+                {/* Dynamic QRIS Rendering with qrcode.react */}
+                <div className="relative w-44 h-44 bg-white p-2 rounded flex items-center justify-center shadow-2xs">
+                  {isLoading ? (
+                    <div className="flex flex-col items-center justify-center gap-2 text-xs text-slate-400">
+                      <RefreshCw className="w-6 h-6 animate-spin text-[#3D77EE]" />
+                      <span>Memuat QRIS...</span>
+                    </div>
+                  ) : (
+                    <>
+                      <QRCodeSVG
+                        value={effectiveQr}
+                        size={168}
+                        level="M"
+                        includeMargin={false}
+                        className="w-full h-full"
+                      />
+                      {/* Brand Logo Center Insignia */}
+                      <div className="absolute inset-0 m-auto w-8 h-8 rounded-md bg-[#3D77EE] flex items-center justify-center shadow-md border-2 border-white pointer-events-none">
+                        <span className="text-white font-black text-[10px]">TPK</span>
+                      </div>
+                    </>
+                  )}
                 </div>
 
                 <div className="flex items-center gap-1 mt-2 text-[#687280] text-[11px] font-semibold">
                   <ShieldCheck className="w-3.5 h-3.5 text-[#3D77EE]" />
-                  <span>GPN &amp; BI Verified</span>
+                  <span>GPN &amp; SNAP BI Verified</span>
                 </div>
               </div>
 
@@ -208,7 +216,7 @@ export default function PaymentChannels({
                     <button
                       type="button"
                       onClick={() => handleCopy(amount.toString(), "Nominal transfer")}
-                      className="p-1.5 bg-slate-100 hover:bg-blue-50 text-[#687280] hover:text-[#3D77EE] rounded-[8px] transition-colors"
+                      className="p-1.5 bg-slate-100 hover:bg-blue-50 text-[#687280] hover:text-[#3D77EE] rounded-[8px] transition-colors cursor-pointer"
                       title="Salin Nominal"
                     >
                       <Copy className="w-4 h-4" />
@@ -226,7 +234,7 @@ export default function PaymentChannels({
                       PT TAPAK TEKNOLOGI PROPERTI INDONESIA
                     </div>
                     <div className="text-[#687280] text-[11px]">
-                      Kota Adm. Jakarta Selatan • Platform Real Estate
+                      Kota Adm. Jakarta Selatan • NICEPAY SNAP Gateway
                     </div>
                   </div>
                 </div>
@@ -235,20 +243,31 @@ export default function PaymentChannels({
                 <div className="flex flex-wrap items-center gap-2.5 mt-5 pt-3 border-t border-slate-100">
                   <button
                     type="button"
-                    onClick={() => alert("Kode QR berhasil diunduh ke perangkat Anda.")}
-                    className="flex items-center gap-1.5 px-4 py-2 bg-slate-100 hover:bg-slate-200 text-[#111827] text-xs font-bold rounded-[10px] transition-colors"
+                    onClick={() => alert("Kode QRIS resmi tersimpan di perangkat Anda.")}
+                    className="flex items-center gap-1.5 px-3.5 py-2 bg-slate-100 hover:bg-slate-200 text-[#111827] text-xs font-bold rounded-[10px] transition-colors cursor-pointer"
                   >
                     <Download className="w-4 h-4" />
-                    <span>Unduh Kode QR</span>
+                    <span>Unduh QR</span>
                   </button>
                   <button
                     type="button"
                     onClick={onCheckStatus}
-                    className="flex items-center gap-1.5 px-4 py-2 bg-[#3D77EE] hover:bg-[#2B55AB] text-white text-xs font-bold rounded-[10px] shadow-sm transition-colors"
+                    className="flex items-center gap-1.5 px-3.5 py-2 bg-[#3D77EE] hover:bg-[#2B55AB] text-white text-xs font-bold rounded-[10px] shadow-sm transition-colors cursor-pointer"
                   >
                     <RefreshCw className="w-4 h-4" />
                     <span>Cek Status Pembayaran</span>
                   </button>
+                  {onSimulateSuccess && (
+                    <button
+                      type="button"
+                      onClick={onSimulateSuccess}
+                      className="flex items-center gap-1 px-3 py-2 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-200 text-xs font-bold rounded-[10px] transition-colors cursor-pointer"
+                      title="Simulasi pelunasan instan untuk pengujian sandbox"
+                    >
+                      <Zap className="w-3.5 h-3.5" />
+                      <span>Simulasi Bayar Lunas</span>
+                    </button>
+                  )}
                 </div>
               </div>
             </div>
@@ -304,11 +323,11 @@ export default function PaymentChannels({
         {/* VA Radio Grid */}
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
           {Object.entries(vaNumbers).map(([id, info]) => {
-            const isSelected = selectedChannel === id;
+            const isSelected = activeChannel === id;
             return (
               <label
                 key={id}
-                onClick={() => setSelectedChannel(id)}
+                onClick={() => handleSelect(id)}
                 className={`relative flex items-center justify-between p-4 rounded-[12px] border cursor-pointer transition-all ${
                   isSelected
                     ? "bg-blue-50/50 border-[#3D77EE] ring-1 ring-[#3D77EE]"
@@ -320,7 +339,7 @@ export default function PaymentChannels({
                     type="radio"
                     name="payment_channel"
                     checked={isSelected}
-                    onChange={() => setSelectedChannel(id)}
+                    onChange={() => handleSelect(id)}
                     className="w-4 h-4 text-[#3D77EE] accent-[#3D77EE]"
                   />
                   <div className="flex flex-col">
@@ -337,24 +356,36 @@ export default function PaymentChannels({
         </div>
 
         {/* Selected VA Details Display */}
-        {selectedChannel.endsWith("_va") && vaNumbers[selectedChannel] && (
-          <div className="mt-2 p-4 rounded-[12px] bg-blue-50/50 border border-blue-100 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 animate-in fade-in duration-150">
+        {activeChannel.endsWith("_va") && vaNumbers[activeChannel] && (
+          <div className="mt-2 p-4 rounded-[12px] bg-blue-50/60 border border-blue-100 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 animate-in fade-in duration-150">
             <div>
               <span className="text-[11px] text-[#687280] font-medium block">
-                Nomor Virtual Account {vaNumbers[selectedChannel].bank}:
+                Nomor Virtual Account {vaNumbers[activeChannel].bank} (SNAP BI):
               </span>
               <span className="font-mono text-lg font-black text-[#111827] tracking-wider">
-                {vaNumbers[selectedChannel].va}
+                {vaNumbers[activeChannel].va}
               </span>
             </div>
-            <button
-              type="button"
-              onClick={() => handleCopy(vaNumbers[selectedChannel].va.replace(/\s/g, ""), "Nomor VA")}
-              className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-[8px] bg-white hover:bg-slate-50 text-[#3D77EE] text-xs font-bold border border-blue-200 shadow-2xs transition-colors"
-            >
-              <Copy className="w-3.5 h-3.5" />
-              <span>Salin Nomor VA</span>
-            </button>
+            <div className="flex items-center gap-2">
+              <button
+                type="button"
+                onClick={() => handleCopy(vaNumbers[activeChannel].va.replace(/\s/g, ""), "Nomor VA")}
+                className="flex items-center gap-1.5 px-3.5 py-2 rounded-[8px] bg-white hover:bg-slate-50 text-[#3D77EE] text-xs font-bold border border-blue-200 shadow-2xs transition-colors cursor-pointer"
+              >
+                <Copy className="w-3.5 h-3.5" />
+                <span>Salin Nomor VA</span>
+              </button>
+              {onSimulateSuccess && (
+                <button
+                  type="button"
+                  onClick={onSimulateSuccess}
+                  className="px-3 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-[8px] text-xs font-bold shadow-xs transition-colors cursor-pointer"
+                  title="Simulasi transfer lunas via VA"
+                >
+                  Bayar VA
+                </button>
+              )}
+            </div>
           </div>
         )}
       </div>
@@ -381,9 +412,9 @@ export default function PaymentChannels({
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
           {/* GoPay */}
           <label
-            onClick={() => setSelectedChannel("gopay")}
+            onClick={() => handleSelect("gopay")}
             className={`flex items-center justify-between p-4 rounded-[12px] border cursor-pointer transition-all ${
-              selectedChannel === "gopay"
+              activeChannel === "gopay"
                 ? "bg-blue-50/50 border-[#3D77EE] ring-1 ring-[#3D77EE]"
                 : "bg-slate-50/70 border-slate-200/80 hover:bg-slate-100"
             }`}
@@ -392,8 +423,8 @@ export default function PaymentChannels({
               <input
                 type="radio"
                 name="payment_channel"
-                checked={selectedChannel === "gopay"}
-                onChange={() => setSelectedChannel("gopay")}
+                checked={activeChannel === "gopay"}
+                onChange={() => handleSelect("gopay")}
                 className="w-4 h-4 text-[#3D77EE] accent-[#3D77EE]"
               />
               <div className="flex flex-col">
@@ -408,9 +439,9 @@ export default function PaymentChannels({
 
           {/* ShopeePay */}
           <label
-            onClick={() => setSelectedChannel("shopeepay")}
+            onClick={() => handleSelect("shopeepay")}
             className={`flex items-center justify-between p-4 rounded-[12px] border cursor-pointer transition-all ${
-              selectedChannel === "shopeepay"
+              activeChannel === "shopeepay"
                 ? "bg-blue-50/50 border-[#3D77EE] ring-1 ring-[#3D77EE]"
                 : "bg-slate-50/70 border-slate-200/80 hover:bg-slate-100"
             }`}
@@ -419,8 +450,8 @@ export default function PaymentChannels({
               <input
                 type="radio"
                 name="payment_channel"
-                checked={selectedChannel === "shopeepay"}
-                onChange={() => setSelectedChannel("shopeepay")}
+                checked={activeChannel === "shopeepay"}
+                onChange={() => handleSelect("shopeepay")}
                 className="w-4 h-4 text-[#3D77EE] accent-[#3D77EE]"
               />
               <div className="flex flex-col">

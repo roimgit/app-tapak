@@ -1,8 +1,8 @@
 "use client";
 
 import React from "react";
-import Image from "next/image";
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { Headphones, ChevronDown } from "lucide-react";
 
 interface OwnerSubNavProps {
@@ -10,6 +10,11 @@ interface OwnerSubNavProps {
 }
 
 export default function OwnerSubNav({ onOpenCS }: OwnerSubNavProps) {
+  const pathname = usePathname();
+
+  const isDashboard = pathname.startsWith("/owner/dashboard");
+  const isPaketIklan = pathname === "/paket-iklan" || pathname === "/pasang-listing";
+
   return (
     <div className="bg-white border-b border-slate-200/80 sticky top-16 z-30 shadow-xs">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-14 flex items-center justify-between gap-4">
@@ -24,25 +29,33 @@ export default function OwnerSubNav({ onOpenCS }: OwnerSubNavProps) {
 
           <nav className="hidden md:flex items-center gap-6 text-sm font-medium">
             <Link
-              href="/paket-iklan"
-              className="text-[#687280] hover:text-[#111827] transition-colors py-1"
+              href="/owner/dashboard"
+              className={`py-1 transition-colors relative ${
+                isDashboard
+                  ? "text-[#3D77EE] font-semibold after:absolute after:bottom-[-10px] after:left-0 after:right-0 after:h-[2px] after:bg-[#3D77EE]"
+                  : "text-[#687280] hover:text-[#111827]"
+              }`}
             >
               Dashboard
             </Link>
             <Link
-              href="/paket-iklan"
+              href="/owner/dashboard"
               className="text-[#687280] hover:text-[#111827] transition-colors py-1"
             >
               Properti Saya
             </Link>
             <Link
               href="/paket-iklan"
-              className="text-[#3D77EE] font-semibold relative py-1 after:absolute after:bottom-[-10px] after:left-0 after:right-0 after:h-[2px] after:bg-[#3D77EE]"
+              className={`py-1 transition-colors relative ${
+                isPaketIklan
+                  ? "text-[#3D77EE] font-semibold after:absolute after:bottom-[-10px] after:left-0 after:right-0 after:h-[2px] after:bg-[#3D77EE]"
+                  : "text-[#687280] hover:text-[#111827]"
+              }`}
             >
               Paket Iklan
             </Link>
             <Link
-              href="#faq"
+              href="/paket-iklan#faq"
               className="text-[#687280] hover:text-[#111827] transition-colors py-1"
             >
               Bantuan
@@ -52,14 +65,16 @@ export default function OwnerSubNav({ onOpenCS }: OwnerSubNavProps) {
 
         {/* Action Kanan: Kontak CS & Profil Pemilik */}
         <div className="flex items-center gap-3">
-          <button
-            type="button"
+          <a
+            href="https://wa.me/6281234567890?text=Halo%20Admin%20Tapak,%20saya%20ingin%20berkonsultasi%20mengenai%20iklan%20saya."
+            target="_blank"
+            rel="noopener noreferrer"
             onClick={onOpenCS}
             className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-[10px] bg-slate-50 hover:bg-slate-100 text-[#111827] text-xs font-semibold border border-slate-200 transition-colors"
           >
             <Headphones className="w-3.5 h-3.5 text-[#3D77EE]" />
             <span className="hidden sm:inline">Kontak CS</span>
-          </button>
+          </a>
 
           <div className="flex items-center gap-2 pl-2 border-l border-slate-200">
             <div className="w-8 h-8 rounded-full bg-gradient-to-tr from-[#3D77EE] to-sky-400 p-0.5">
