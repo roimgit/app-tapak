@@ -98,6 +98,8 @@ export default function ExploreClient({
         setMobileView={setMobileView}
         onReset={handleReset}
         hasActiveFilters={hasActiveFilters}
+        isDetailActive={Boolean(detailedListingId)}
+        onBackToList={handleBackToList}
       />
 
       <div className="flex-1 flex overflow-hidden">

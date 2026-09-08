@@ -82,10 +82,18 @@ export default function PaymentChannels({
     bni_va: { bank: "Bank BNI", va: getBankVa("bni_va", "009"), code: "009" },
   };
 
+  const [qrMode, setQrMode] = useState<"emv" | "scanner_hp">("scanner_hp");
+
+  // URL Simulator yang bisa dibuka langsung oleh kamera smartphone di jaringan yang sama
+  const simulationUrl = `/sandbox/bayar?orderId=${encodeURIComponent(orderId)}`;
+  const phoneScanQrUrl = `http://192.168.234.63:3000/sandbox/bayar?orderId=${encodeURIComponent(orderId)}`;
+
   // Default fallback payload QRIS jika belum dimuat dari gateway
-  const effectiveQr =
+  const emvQrPayload =
     qrContent ||
     `00020101021226670016ID.CO.NICEPAY.WWW0118936009180000${orderId.replace(/\D/g, "").slice(-4)}51440014ID.LINKAJA.WWW0215081234567890123520458125303360540${amount.toFixed(0).length}${amount.toFixed(0)}5802ID5925PT TAPAK TEKNOLOGI PROPERTI6013JAKARTA SELATAN62300126${orderId}6304ABCD`;
+
+  const effectiveQr = qrMode === "scanner_hp" ? phoneScanQrUrl : emvQrPayload;
 
   return (
     <div className="flex flex-col gap-6">
@@ -166,10 +174,32 @@ export default function PaymentChannels({
             <div className="bg-white rounded-[14px] p-5 sm:p-6 border border-slate-200/80 flex flex-col md:flex-row items-center gap-6">
               {/* QR Code Container menggunakan qrcode.react */}
               <div className="bg-white p-4 rounded-[14px] shadow-sm border border-slate-200 flex flex-col items-center shrink-0">
+                {/* Toggle Mode QR */}
                 <div className="flex items-center justify-between w-full pb-2 mb-2 border-b border-slate-100 text-[10px]">
-                  <span className="font-bold uppercase tracking-wider text-[#111827]">
-                    QRIS STANDAR BI
-                  </span>
+                  <div className="flex items-center gap-1">
+                    <button
+                      type="button"
+                      onClick={() => setQrMode("scanner_hp")}
+                      className={`px-2 py-0.5 rounded font-bold transition-colors cursor-pointer ${
+                        qrMode === "scanner_hp"
+                          ? "bg-[#3D77EE] text-white"
+                          : "bg-slate-100 text-slate-600 hover:bg-slate-200"
+                      }`}
+                    >
+                      Scan Kamera HP
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setQrMode("emv")}
+                      className={`px-2 py-0.5 rounded font-bold transition-colors cursor-pointer ${
+                        qrMode === "emv"
+                          ? "bg-[#3D77EE] text-white"
+                          : "bg-slate-100 text-slate-600 hover:bg-slate-200"
+                      }`}
+                    >
+                      Baku EMV
+                    </button>
+                  </div>
                   <span className="font-mono font-bold text-[#3D77EE] bg-blue-50 px-1.5 py-0.5 rounded">
                     NMID: ID1024398124
                   </span>
@@ -201,7 +231,11 @@ export default function PaymentChannels({
 
                 <div className="flex items-center gap-1 mt-2 text-[#687280] text-[11px] font-semibold">
                   <ShieldCheck className="w-3.5 h-3.5 text-[#3D77EE]" />
-                  <span>GPN &amp; SNAP BI Verified</span>
+                  <span>
+                    {qrMode === "scanner_hp"
+                      ? "Bisa discan pakai kamera HP"
+                      : "GPN & SNAP BI Verified"}
+                  </span>
                 </div>
               </div>
 
@@ -222,25 +256,39 @@ export default function PaymentChannels({
                       <Copy className="w-4 h-4" />
                     </button>
                   </div>
-                  <p className="text-[11px] text-amber-800 bg-amber-50 border border-amber-200/80 px-2.5 py-1 rounded-[8px] inline-block mt-2">
-                    *Harap transfer tepat sampai 3 digit terakhir untuk validasi otomatis.
-                  </p>
 
-                  <div className="mt-4 pt-3 border-t border-slate-100 text-xs">
+                  {/* Sandbox Guide Notice */}
+                  <div className="mt-2.5 p-3 rounded-[10px] bg-blue-50/70 border border-blue-100 text-xs text-[#111827] space-y-1">
+                    <div className="font-bold text-[#3D77EE] flex items-center gap-1">
+                      <span>💡 Cara Uji Coba Scan &amp; Verifikasi:</span>
+                    </div>
+                    <p className="text-[11px] text-[#687280] leading-relaxed">
+                      1. Arahkan <strong>kamera smartphone</strong> Anda ke QR Code untuk membuka Simulator Pembayaran m-Banking di ponsel, atau
+                    </p>
+                    <div className="pt-1 flex items-center gap-2">
+                      <a
+                        href={simulationUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex items-center gap-1 px-2.5 py-1 bg-white border border-blue-200 text-[#3D77EE] font-bold text-[11px] rounded-[6px] hover:bg-blue-50 transition-colors"
+                      >
+                        <span>Buka Simulator di Tab Baru &rarr;</span>
+                      </a>
+                    </div>
+                  </div>
+
+                  <div className="mt-3 text-xs">
                     <span className="text-[10px] uppercase font-bold text-slate-400 tracking-wider block">
                       Penerima Resmi (Merchant):
                     </span>
                     <div className="font-bold text-[#111827] mt-0.5">
                       PT TAPAK TEKNOLOGI PROPERTI INDONESIA
                     </div>
-                    <div className="text-[#687280] text-[11px]">
-                      Kota Adm. Jakarta Selatan • NICEPAY SNAP Gateway
-                    </div>
                   </div>
                 </div>
 
                 {/* Tombol QR Actions */}
-                <div className="flex flex-wrap items-center gap-2.5 mt-5 pt-3 border-t border-slate-100">
+                <div className="flex flex-wrap items-center gap-2.5 mt-4 pt-3 border-t border-slate-100">
                   <button
                     type="button"
                     onClick={() => alert("Kode QRIS resmi tersimpan di perangkat Anda.")}
@@ -261,11 +309,11 @@ export default function PaymentChannels({
                     <button
                       type="button"
                       onClick={onSimulateSuccess}
-                      className="flex items-center gap-1 px-3 py-2 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-200 text-xs font-bold rounded-[10px] transition-colors cursor-pointer"
+                      className="flex items-center gap-1 px-3 py-2 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold rounded-[10px] transition-colors cursor-pointer shadow-xs"
                       title="Simulasi pelunasan instan untuk pengujian sandbox"
                     >
                       <Zap className="w-3.5 h-3.5" />
-                      <span>Simulasi Bayar Lunas</span>
+                      <span>⚡ Simulasi Bayar Lunas</span>
                     </button>
                   )}
                 </div>

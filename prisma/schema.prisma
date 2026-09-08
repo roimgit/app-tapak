@@ -45,6 +45,8 @@ model Listing {
   amenities         String[]
   is_available      Boolean          @default(true)
 
+  nearby_amenities  NearbyAmenity[]
+
   agent_name        String           @default("Konsultan Tapak")
   agent_phone       String           @default("6281234567890")
 
@@ -55,6 +57,32 @@ model Listing {
   @@index([verification_tier])
   @@map("listings")
 }
+
+enum AmenityCategory {
+  TRANSPORT
+  EDUCATION
+  HEALTH
+  WORSHIP
+  SHOPPING
+}
+
+model NearbyAmenity {
+  id          String          @id @default(uuid())
+  listing_id  String
+  listing     Listing         @relation(fields: [listing_id], references: [id], onDelete: Cascade)
+  category    AmenityCategory
+  name        String
+  distance    String          // contoh: "450 m"
+  duration    String          // contoh: "5 menit jalan kaki"
+  latitude    Float
+  longitude   Float
+  created_at  DateTime        @default(now())
+
+  @@index([listing_id])
+  @@index([category])
+  @@map("nearby_amenities")
+}
+
 
 enum PaymentStatus {
   PENDING

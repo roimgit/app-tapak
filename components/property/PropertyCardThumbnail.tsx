@@ -48,15 +48,15 @@ export default function PropertyCardThumbnail({
       </div>
 
       <div className="absolute top-3 right-3 z-10">
-        <span className="px-2.5 py-1 rounded-full text-xs font-semibold bg-black/60 backdrop-blur-md text-white border border-white/20">
+        <span className="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-[#111827]/85 text-white border border-white/10 shadow-2xs">
           {propertyType}
         </span>
       </div>
 
       {maintenanceFee > 0 && (
         <div className="absolute bottom-3 left-3 z-10">
-          <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-md text-[11px] font-medium bg-emerald-950/80 backdrop-blur-md text-emerald-300 border border-emerald-500/30">
-            <CheckCircle2 className="w-3 h-3 text-emerald-400" />
+          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-md text-[11px] font-semibold bg-[#111827]/85 text-white border border-white/10 shadow-2xs">
+            <CheckCircle2 className="w-3 h-3 text-[#3D77EE]" />
             IPL: {formatRupiah(maintenanceFee)}/bln
           </span>
         </div>

@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-import { Search, RotateCcw, ListFilter, Map as MapIcon } from "lucide-react";
+import { Search, RotateCcw, ListFilter, Map as MapIcon, ArrowLeft } from "lucide-react";
 
 interface ExploreFilterBarProps {
   searchQuery: string;
@@ -14,6 +14,8 @@ interface ExploreFilterBarProps {
   setMobileView: (v: "list" | "map") => void;
   onReset: () => void;
   hasActiveFilters: boolean;
+  isDetailActive?: boolean;
+  onBackToList?: () => void;
 }
 
 export default function ExploreFilterBar({
@@ -27,26 +29,42 @@ export default function ExploreFilterBar({
   setMobileView,
   onReset,
   hasActiveFilters,
+  isDetailActive,
+  onBackToList,
 }: ExploreFilterBarProps) {
   return (
-    <div className="bg-white border-b border-slate-200 px-4 sm:px-6 py-3 shrink-0 z-20">
-      <div className="max-w-7xl mx-auto flex flex-wrap items-center gap-3 justify-between">
-        <div className="flex-1 min-w-[240px] max-w-md relative">
-          <Search className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
-          <input
-            type="text"
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            placeholder="Cari lokasi, apartemen, kawasan..."
-            className="w-full pl-9 pr-4 py-2 text-xs sm:text-sm bg-slate-50 border border-slate-200 rounded-[10px] focus:outline-none focus:border-[#3D77EE] focus:ring-1 focus:ring-[#3D77EE]"
-          />
+    <div className="bg-white border-b border-[#E2E8F0] px-4 sm:px-6 py-2.5 shrink-0 z-20 w-full">
+      <div className="w-full flex flex-wrap items-center gap-3 justify-between">
+        <div className="flex items-center gap-2.5 flex-1 min-w-[260px]">
+          {isDetailActive && onBackToList && (
+            <button
+              onClick={onBackToList}
+              type="button"
+              className="inline-flex items-center gap-1.5 px-3.5 py-2 text-xs font-bold text-[#3D77EE] bg-white hover:bg-blue-50 border border-[#E2E8F0] hover:border-[#3D77EE] rounded-[10px] shadow-2xs transition-all active:scale-95 shrink-0 cursor-pointer"
+            >
+              <ArrowLeft className="w-4 h-4 text-[#3D77EE]" />
+              <span className="hidden sm:inline">Kembali ke Daftar Hunian</span>
+              <span className="sm:hidden">Kembali</span>
+            </button>
+          )}
+
+          <div className="flex-1 max-w-md relative">
+            <Search className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
+            <input
+              type="text"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              placeholder="Cari lokasi, apartemen, kawasan..."
+              className="w-full pl-9 pr-4 py-2 text-xs sm:text-sm bg-slate-50 border border-[#E2E8F0] rounded-[10px] focus:outline-none focus:border-[#3D77EE] focus:ring-1 focus:ring-[#3D77EE]"
+            />
+          </div>
         </div>
 
         <div className="flex items-center flex-wrap gap-2 text-xs">
           <select
             value={selectedType}
             onChange={(e) => setSelectedType(e.target.value)}
-            className="px-3 py-2 bg-slate-50 border border-slate-200 rounded-[10px] font-medium text-[#111827] focus:outline-none cursor-pointer"
+            className="px-3 py-2 bg-slate-50 border border-[#E2E8F0] rounded-[10px] font-medium text-[#111827] focus:outline-none cursor-pointer"
           >
             <option value="">Semua Tipe</option>
             <option value="Apartemen">Apartemen</option>
@@ -59,7 +77,7 @@ export default function ExploreFilterBar({
           <select
             value={selectedTier}
             onChange={(e) => setSelectedTier(e.target.value)}
-            className="px-3 py-2 bg-slate-50 border border-slate-200 rounded-[10px] font-medium text-[#111827] focus:outline-none cursor-pointer"
+            className="px-3 py-2 bg-slate-50 border border-[#E2E8F0] rounded-[10px] font-medium text-[#111827] focus:outline-none cursor-pointer"
           >
             <option value="">Semua Tingkat Verifikasi</option>
             <option value="GOLD">Tier Gold</option>
@@ -71,7 +89,7 @@ export default function ExploreFilterBar({
             <button
               type="button"
               onClick={onReset}
-              className="flex items-center gap-1 px-3 py-2 text-xs font-semibold text-rose-600 bg-rose-50 hover:bg-rose-100 rounded-[10px] transition-colors"
+              className="flex items-center gap-1 px-3 py-2 text-xs font-semibold text-[#3D77EE] bg-blue-50 hover:bg-blue-100 rounded-[10px] border border-blue-200 transition-colors"
             >
               <RotateCcw className="w-3.5 h-3.5" />
               <span>Reset</span>
@@ -79,7 +97,7 @@ export default function ExploreFilterBar({
           )}
         </div>
 
-        <div className="lg:hidden flex items-center bg-slate-100 p-1 rounded-[10px] border border-slate-200">
+        <div className="lg:hidden flex items-center bg-slate-100 p-1 rounded-[10px] border border-[#E2E8F0]">
           <button
             onClick={() => setMobileView("list")}
             className={`flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-[8px] transition-all ${

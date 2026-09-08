@@ -67,9 +67,8 @@ export default function InteractiveMap({
 
       L.control.zoom({ position: "bottomright" }).addTo(map);
 
-      L.tileLayer("https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png", {
-        attribution: '&copy; <a href="https://carto.com/">CARTO</a>',
-        subdomains: "abcd",
+      L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
         maxZoom: 19,
       }).addTo(map);
 
@@ -91,7 +90,7 @@ export default function InteractiveMap({
         const customIcon = L.divIcon({
           className: "tapak-leaflet-icon",
           html: `
-            <div class="tapak-pin ${isSelected ? "active" : ""}" style="width: 36px; height: 36px; background-color: ${isSelected ? "#2B55AB" : "#3D77EE"}; border-radius: 50% 50% 50% 0; transform: rotate(-45deg); display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 12px rgba(61,119,238,0.45); border: 2.5px solid #FFFFFF;">
+            <div class="tapak-pin ${isSelected ? "active" : ""}" style="width: 36px; height: 36px; background-color: ${isSelected ? "#2B55AB" : "#3D77EE"}; border-radius: 50% 50% 50% 0; transform: rotate(-45deg); display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 6px rgba(0,0,0,0.18); border: 2.5px solid #FFFFFF;">
               <span style="transform: rotate(45deg); color: #FFFFFF; font-weight: 700; font-size: 13px;">${index + 1}</span>
             </div>
           `,
@@ -128,7 +127,7 @@ export default function InteractiveMap({
       const clusterIcon = L.divIcon({
         className: "tapak-leaflet-cluster",
         html: `
-          <div class="tapak-cluster-pin" style="width: 44px; height: 44px; background-color: #3D77EE; border-radius: 50% 50% 50% 0; transform: rotate(-45deg); display: flex; align-items: center; justify-content: center; box-shadow: 0 6px 16px rgba(61,119,238,0.5); border: 3px solid #FFFFFF;">
+          <div class="tapak-cluster-pin" style="width: 44px; height: 44px; background-color: #3D77EE; border-radius: 50% 50% 50% 0; transform: rotate(-45deg); display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 6px rgba(0,0,0,0.18); border: 3px solid #FFFFFF;">
             <span style="transform: rotate(45deg); color: #FFFFFF; font-weight: 800; font-size: 14px;">4+</span>
           </div>
         `,
@@ -136,9 +135,7 @@ export default function InteractiveMap({
         iconAnchor: [22, 44],
       });
 
-      const clusterMarker = L.marker(mockClusterCoord, { icon: clusterIcon }).addTo(map);
-      clusterMarker.bindTooltip("Cluster Kawasan SCBD: 4 Hunian Terverifikasi", { direction: "top" });
-      clusterMarker.on("click", () => map.setView(mockClusterCoord, 14));
+      L.marker(mockClusterCoord, { icon: clusterIcon }).addTo(map);
     }
 
     initMap();
@@ -170,10 +167,10 @@ export default function InteractiveMap({
   }, [onViewDetail]);
 
   return (
-    <div className="relative w-full h-full min-h-[400px] rounded-[18px] overflow-hidden border border-slate-200/80 shadow-inner">
+    <div className="relative w-full h-full min-h-[400px] rounded-[18px] overflow-hidden border border-[#E2E8F0]">
       <div ref={mapContainerRef} className="w-full h-full z-0" />
-      <div className="absolute top-4 left-4 z-[400] bg-white/95 backdrop-blur-md px-3.5 py-2 rounded-[10px] border border-slate-200 shadow-md text-xs flex items-center gap-2">
-        <div className="w-3 h-3 rounded-full bg-[#3D77EE]" />
+      <div className="absolute top-3.5 left-3.5 z-[400] bg-white px-3 py-2 rounded-[10px] border border-[#E2E8F0] shadow-2xs text-xs flex items-center gap-2">
+        <div className="w-2.5 h-2.5 rounded-full bg-[#3D77EE]" />
         <span className="font-semibold text-[#111827]">Pin Biru:</span>
         <span className="text-[#687280]">Hunian Terverifikasi Tapak.</span>
       </div>

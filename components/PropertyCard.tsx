@@ -27,12 +27,12 @@ export default function PropertyCard({
   return (
     <div
       onClick={() => onSelect?.(listing.id)}
-      className={`group bg-white rounded-[18px] border transition-all duration-300 overflow-hidden flex ${
+      className={`group bg-white rounded-[18px] border transition-all duration-200 overflow-hidden flex ${
         isHorizontal ? "flex-col sm:flex-row h-auto" : "flex-col"
       } ${
         isSelected
-          ? "border-[#3D77EE] ring-2 ring-[#3D77EE]/20 shadow-lg shadow-blue-500/10"
-          : "border-slate-200/80 hover:border-blue-300 hover:shadow-xl hover:shadow-blue-500/5 hover:-translate-y-1"
+          ? "border-[#3D77EE] shadow-2xs"
+          : "border-[#E2E8F0] hover:border-[#3D77EE] shadow-2xs"
       }`}
     >
       <PropertyCardThumbnail
@@ -73,7 +73,7 @@ export default function PropertyCard({
             </Link>
           )}
 
-          <div className="flex items-center gap-4 py-2 border-y border-slate-100 text-xs text-[#687280]">
+          <div className="flex items-center gap-4 py-2 border-y border-[#E2E8F0] text-xs text-[#687280]">
             <div className="flex items-center gap-1.5" title={`${listing.bedrooms} Kamar Tidur`}>
               <Bed className="w-3.5 h-3.5 text-slate-500" />
               <span>{listing.bedrooms} KT</span>

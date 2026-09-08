@@ -10,6 +10,8 @@ import PropertyCostBreakdown from "@/components/property/PropertyCostBreakdown";
 import PropertyAgentSidebar from "@/components/property/PropertyAgentSidebar";
 import { getListingBySlug } from "@/lib/listings";
 
+import NearbyAmenities from "@/components/property/NearbyAmenities";
+
 interface PropertyDetailPageProps {
   params: Promise<{ slug: string }>;
 }
@@ -34,7 +36,7 @@ export default async function PropertyDetailPage({ params }: PropertyDetailPageP
   return (
     <div className="min-h-screen flex flex-col bg-[#F3F6FB]">
       <Navbar />
-      <main className="flex-1 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8 w-full">
+      <main className="flex-1 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8 w-full space-y-8">
         <PropertyHeader listing={listing} />
         <PropertyGallery images={listing.images} title={listing.title} />
 
@@ -55,6 +57,14 @@ export default async function PropertyDetailPage({ params }: PropertyDetailPageP
             <PropertyAgentSidebar listing={listing} />
           </div>
         </div>
+
+        {/* Fasilitas Sekitar & Aksesibilitas Lingkungan (Leaflet + OpenStreetMap) */}
+        <NearbyAmenities
+          latitude={listing.latitude}
+          longitude={listing.longitude}
+          propertyTitle={listing.title}
+          listingCode={`TPK-${listing.id.slice(-4).toUpperCase()}`}
+        />
       </main>
       <Footer />
     </div>

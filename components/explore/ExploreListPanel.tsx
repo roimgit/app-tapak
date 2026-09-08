@@ -28,9 +28,9 @@ export default function ExploreListPanel({
         mobileView === "map" ? "hidden lg:flex" : "flex"
       }`}
     >
-      <div className="flex items-center justify-between mb-4 pb-2 border-b border-slate-200 shrink-0">
-        <span className="text-xs font-bold uppercase tracking-wider text-[#687280]">
-          Menampilkan <span className="text-[#3D77EE]">{listings.length}</span> Hunian Terverifikasi
+      <div className="flex items-center justify-between mb-4 pb-2 border-b border-[#E2E8F0] shrink-0">
+        <span className="text-xs font-semibold text-[#687280]">
+          Menampilkan <span className="text-[#3D77EE] font-bold">{listings.length}</span> hunian terverifikasi
         </span>
         <span className="text-xs text-[#687280]">Pilih kartu untuk menyorot lokasi di peta</span>
       </div>
@@ -49,7 +49,7 @@ export default function ExploreListPanel({
           ))}
         </div>
       ) : (
-        <div className="h-64 flex flex-col items-center justify-center text-center p-6 bg-white rounded-[18px] border border-slate-200">
+        <div className="h-64 flex flex-col items-center justify-center text-center p-6 bg-white rounded-[18px] border border-[#E2E8F0]">
           <Building2 className="w-12 h-12 text-slate-300 mb-3" />
           <h4 className="font-bold text-base text-[#111827]">Tidak Ada Hunian yang Cocok</h4>
           <p className="text-xs text-[#687280] mt-1 max-w-xs">
@@ -57,7 +57,7 @@ export default function ExploreListPanel({
           </p>
           <button
             onClick={onReset}
-            className="mt-4 px-4 py-2 text-xs font-semibold text-white bg-[#3D77EE] rounded-[10px]"
+            className="mt-4 px-4 py-2 text-xs font-semibold text-white bg-[#3D77EE] hover:bg-[#2B55AB] rounded-[10px] transition-colors"
           >
             Reset Filter
           </button>
