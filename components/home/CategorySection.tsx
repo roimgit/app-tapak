@@ -1,41 +1,65 @@
 "use client";
 
-import React from "react";
+import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import { Building2, Home, Compass, Sparkles, ArrowRight } from "lucide-react";
 import { useLanguage } from "@/context/LanguageContext";
+import { formatCategoryUnitCount } from "@/lib/utils";
 
-export default function CategorySection() {
+interface CategorySectionProps {
+  initialCounts?: Record<string, number>;
+}
+
+export default function CategorySection({ initialCounts }: CategorySectionProps) {
   const { t } = useLanguage();
+  const [counts, setCounts] = useState<Record<string, number>>(initialCounts || {});
+
+  useEffect(() => {
+    // Ambil data terkini dari database melalui API jika initialCounts belum ada atau untuk sinkronisasi
+    fetch("/api/categories")
+      .then((res) => res.json())
+      .then((data) => {
+        if (data?.counts) {
+          setCounts(data.counts);
+        }
+      })
+      .catch(() => {
+        // Fallback aman menggunakan initialCounts jika koneksi terhambat
+      });
+  }, []);
 
   const categories = [
     {
+      key: "Apartemen",
       label: t("search.apartment", "Apartemen"),
       icon: Building2,
       desc: t("cat.apart_desc", "Unit vertikal modern di pusat bisnis"),
       href: "/explore?type=Apartemen",
-      count: "350+ Unit",
+      count: formatCategoryUnitCount(counts["Apartemen"] ?? 0, "Unit"),
     },
     {
+      key: "Rumah",
       label: t("search.house", "Rumah Tapak"),
       icon: Home,
       desc: t("cat.house_desc", "Hunian asri keluarga dengan taman & garasi"),
       href: "/explore?type=Rumah",
-      count: "210+ Unit",
+      count: formatCategoryUnitCount(counts["Rumah"] ?? 0, "Unit"),
     },
     {
+      key: "Kost",
       label: t("search.kost", "Kost & Co-Living"),
       icon: Compass,
       desc: t("cat.kost_desc", "Kamar sewa fleksibel berfasilitas lengkap"),
       href: "/explore?type=Kost",
-      count: "500+ Kamar",
+      count: formatCategoryUnitCount(counts["Kost"] ?? 0, "Kamar"),
     },
     {
+      key: "Vila",
       label: t("cat.villa_title", "Vila Tropis"),
       icon: Sparkles,
       desc: t("cat.villa_desc", "Vila liburan privat dengan kolam renang"),
       href: "/explore?type=Vila",
-      count: "80+ Vila",
+      count: formatCategoryUnitCount(counts["Vila"] ?? 0, "Vila"),
     },
   ];
 

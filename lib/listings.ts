@@ -187,3 +187,63 @@ export async function getListingBySlug(slug: string): Promise<ListingItem | null
 
   return MOCK_LISTINGS.find((item) => item.slug === slug) ?? null;
 }
+
+/**
+ * Mengambil jumlah unit riil per kategori hunian langsung dari database.
+ * Jika database tidak tersedia atau dalam mode mock, dilakukan fallback ke MOCK_LISTINGS.
+ */
+export async function getCategoryCounts(): Promise<Record<string, number>> {
+  const isMockOnly =
+    process.env.NEXT_PUBLIC_USE_MOCK_DATA === "true" ||
+    !process.env.DATABASE_URL ||
+    process.env.DATABASE_URL.includes("mockpassword");
+
+  if (!isMockOnly) {
+    try {
+      const groups = await prisma.listing.groupBy({
+        by: ["property_type"],
+        _count: {
+          id: true,
+        },
+        where: {
+          is_available: true,
+        },
+      });
+
+      if (groups && groups.length > 0) {
+        const counts: Record<string, number> = {
+          Apartemen: 0,
+          Rumah: 0,
+          Kost: 0,
+          Vila: 0,
+          Ruko: 0,
+        };
+
+        for (const g of groups) {
+          if (g.property_type) {
+            counts[g.property_type] = g._count.id;
+          }
+        }
+        return counts;
+      }
+    } catch (err) {
+      console.warn("Kueri jumlah kategori dari database gagal, menggunakan fallback:", err);
+    }
+  }
+
+  // Fallback ke data mock
+  const fallbackCounts: Record<string, number> = {
+    Apartemen: 0,
+    Rumah: 0,
+    Kost: 0,
+    Vila: 0,
+    Ruko: 0,
+  };
+  for (const item of MOCK_LISTINGS) {
+    if (item.property_type) {
+      fallbackCounts[item.property_type] = (fallbackCounts[item.property_type] || 0) + 1;
+    }
+  }
+  return fallbackCounts;
+}
+

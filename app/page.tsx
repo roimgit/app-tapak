@@ -9,10 +9,15 @@ import ArticleHighlightSection from "@/components/home/ArticleHighlightSection";
 import PromoSection from "@/components/home/PromoSection";
 import FeaturedSection from "@/components/home/FeaturedSection";
 import PillarsSection from "@/components/home/PillarsSection";
-import { getListings } from "@/lib/listings";
+import { getListings, getCategoryCounts } from "@/lib/listings";
+
+export const dynamic = "force-dynamic";
 
 export default async function HomePage() {
-  const listings = await getListings();
+  const [listings, categoryCounts] = await Promise.all([
+    getListings(),
+    getCategoryCounts(),
+  ]);
   const featuredListings = listings.slice(0, 6);
 
   return (
@@ -22,7 +27,7 @@ export default async function HomePage() {
       <main className="flex-1">
         <HomeBillboardBanner />
         <HeroSearchSection />
-        <CategorySection />
+        <CategorySection initialCounts={categoryCounts} />
         <ArticleHighlightSection />
         <PromoSection />
         <FeaturedSection listings={featuredListings} />
