@@ -2,7 +2,7 @@
 
 import React from "react";
 import Link from "next/link";
-import { PlusCircle, LogIn, LogOut, User } from "lucide-react";
+import { LogIn, LogOut, User } from "lucide-react";
 import { useLanguage } from "@/context/LanguageContext";
 import { useAuth } from "@/context/AuthContext";
 import { NavLinkItem } from "./Navbar";
@@ -112,17 +112,6 @@ export default function MobileNavDrawer({
             </Link>
           </>
         )}
-        <Link
-          href="/paket-iklan"
-          onClick={() => {
-            onSelectLink?.("/paket-iklan");
-            onClose();
-          }}
-          className="w-full flex items-center justify-center gap-2 py-3 rounded-[10px] text-sm font-semibold text-white bg-[#3D77EE] hover:bg-[#2B55AB] transition-colors active:scale-[0.98]"
-        >
-          <PlusCircle className="w-4 h-4" />
-          <span>{t("nav.post_listing", "Pasang Listing Properti")}</span>
-        </Link>
       </div>
     </div>
   );

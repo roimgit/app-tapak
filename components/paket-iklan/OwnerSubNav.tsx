@@ -13,7 +13,7 @@ export default function OwnerSubNav({ onOpenCS }: OwnerSubNavProps) {
   const pathname = usePathname();
 
   const isDashboard = pathname.startsWith("/owner/dashboard");
-  const isPaketIklan = pathname === "/paket-iklan" || pathname === "/pasang-listing";
+  const isPaketIklan = pathname === "/paket-iklan";
 
   return (
     <div className="bg-white border-b border-slate-200/80 sticky top-16 z-30 shadow-xs">

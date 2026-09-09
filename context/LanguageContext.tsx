@@ -44,11 +44,6 @@ export const TRANSLATIONS: Translations = {
     KOR: "로그인",
     ENG: "Sign In",
   },
-  "nav.post_listing": {
-    ID: "Pasang Listing",
-    KOR: "매물 등록",
-    ENG: "Post Listing",
-  },
   "nav.verified_badge": {
     ID: "Verified Homes",
     KOR: "검증 매물",

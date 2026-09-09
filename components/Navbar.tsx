@@ -11,7 +11,6 @@ import {
   Tag,
   Menu,
   X,
-  PlusCircle,
   LogIn,
   LogOut,
   User,
@@ -191,16 +190,6 @@ export default function Navbar() {
               <span>{t("nav.login", "Masuk")}</span>
             </Link>
           )}
-
-          {/* Tombol Pasang Listing */}
-          <Link
-            href="/paket-iklan"
-            onClick={() => handleLinkClick("/paket-iklan")}
-            className="flex items-center gap-1.5 px-4 py-2 text-xs xl:text-sm font-semibold rounded-[10px] text-white bg-[#3D77EE] hover:bg-[#2B55AB] shadow-sm shadow-blue-500/20 hover:shadow-md transition-all active:scale-[0.98] whitespace-nowrap"
-          >
-            <PlusCircle className="w-4 h-4 shrink-0" />
-            <span>{t("nav.post_listing", "Pasang Listing")}</span>
-          </Link>
         </div>
 
         {/* Mobile Hamburger Button */}
