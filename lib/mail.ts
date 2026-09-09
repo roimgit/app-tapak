@@ -1,7 +1,12 @@
 import { Resend } from "resend";
 
-const resendApiKey = process.env.RESEND_API_KEY;
-const resend = new Resend(resendApiKey);
+function getResendClient(): Resend | null {
+  const apiKey = process.env.RESEND_API_KEY;
+  if (!apiKey) {
+    return null;
+  }
+  return new Resend(apiKey);
+}
 
 interface SendPasswordResetEmailParams {
   toEmail: string;
@@ -12,6 +17,15 @@ export async function sendPasswordResetEmail({
   toEmail,
   resetLink,
 }: SendPasswordResetEmailParams) {
+  const resend = getResendClient();
+  if (!resend) {
+    console.warn("[MAIL] RESEND_API_KEY belum disetel pada environment variables.");
+    return {
+      success: false,
+      error: "Layanan email belum dikonfigurasi pada server (RESEND_API_KEY tidak ditemukan).",
+    };
+  }
+
   const htmlContent = `
     <!DOCTYPE html>
     <html>
@@ -85,6 +99,15 @@ export async function sendAccountVerificationEmail({
   name,
   verificationLink,
 }: SendAccountVerificationEmailParams) {
+  const resend = getResendClient();
+  if (!resend) {
+    console.warn("[MAIL] RESEND_API_KEY belum disetel pada environment variables.");
+    return {
+      success: false,
+      error: "Layanan email belum dikonfigurasi pada server (RESEND_API_KEY tidak ditemukan).",
+    };
+  }
+
   const greetingName = name ? name : "Pengguna Tapak";
 
   const htmlContent = `
