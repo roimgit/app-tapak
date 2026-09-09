@@ -26,7 +26,7 @@ export async function POST(request: NextRequest) {
     const rawEmail = typeof body?.email === "string" ? body.email.trim() : "";
     const phone = typeof body?.phone === "string" ? body.phone.trim() : "";
     const password = typeof body?.password === "string" ? body.password : "";
-    const userType = body?.userType === "owner" ? "owner" : "renter";
+    const userType = body?.userType === "owner" ? "owner" : "user";
 
     // 1. Validasi Input
     if (!name || name.length < 2) {

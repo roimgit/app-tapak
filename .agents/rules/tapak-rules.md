@@ -52,3 +52,6 @@ trigger: always_on
   * Setiap kueri daftar wajib memiliki limit data maksimum (`take` / `LIMIT`) agar database tidak kelebihan beban.
 - **Optimasi Re-render**:
   * Gunakan `useMemo` dan `useCallback` secara tepat pada komputasi filter kartu properti dan fungsi handler yang diteruskan ke komponen peta agar tidak memicu re-render massal.
+
+## 6. Kebijakan Git & Deployment
+- **Manual Git Push**: AI DILARANG melakukan `git push` secara otomatis. Segala eksekusi `git push` ke repositori remote menjadi wewenang dan dilakukan secara manual oleh USER sendiri. AI hanya diperbolehkan melakukan pembuatan/perubahan file dan pengujian lokal (build/lint/typecheck).

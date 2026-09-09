@@ -77,14 +77,12 @@ export default function OwnerSubNav({ onOpenCS }: OwnerSubNavProps) {
           </a>
 
           <div className="flex items-center gap-2 pl-2 border-l border-slate-200">
-            <div className="w-8 h-8 rounded-full bg-gradient-to-tr from-[#3D77EE] to-sky-400 p-0.5">
-              <div className="w-full h-full rounded-full bg-white flex items-center justify-center font-bold text-xs text-[#3D77EE]">
-                O
-              </div>
+            <div className="w-8 h-8 rounded-full bg-[#3D77EE] text-white flex items-center justify-center font-bold text-xs shadow-xs">
+              S
             </div>
             <div className="hidden lg:flex flex-col text-left">
-              <span className="text-xs font-semibold text-[#111827] leading-tight">Oim</span>
-              <span className="text-[10px] text-[#687280] leading-tight">Pemilik Aset</span>
+              <span className="text-xs font-semibold text-[#111827] leading-tight">Super Admin</span>
+              <span className="text-[10px] text-[#3D77EE] font-bold leading-tight">Administrator</span>
             </div>
             <ChevronDown className="w-3.5 h-3.5 text-[#687280]" />
           </div>

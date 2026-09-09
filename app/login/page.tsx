@@ -11,7 +11,6 @@ import {
   ArrowRight,
   ShieldCheck,
   Building2,
-  Sparkles,
   AlertCircle,
   CheckCircle2,
   X,
@@ -20,16 +19,18 @@ import {
   ExternalLink,
 } from "lucide-react";
 import { useLanguage } from "@/context/LanguageContext";
+import { useAuth } from "@/context/AuthContext";
 import LanguageToggle from "@/components/LanguageToggle";
 
 function LoginFormContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { t } = useLanguage();
+  const { login } = useAuth();
   const redirectParam = searchParams.get("redirect") || "";
 
-  const [email, setEmail] = useState("owner.demo@tapak.id");
-  const [password, setPassword] = useState("demo12345");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [rememberUntilClose, setRememberUntilClose] = useState(true);
   const [isLoading, setIsLoading] = useState(false);
@@ -57,11 +58,11 @@ function LoginFormContent() {
 
     if (error) {
       if (error === "access_denied") {
-        setErrorMessage("Akses Google dibatalkan oleh pengguna.");
+        setErrorMessage("Akses dibatalkan oleh pengguna.");
       } else if (error === "invalid_token") {
         setErrorMessage("Tautan verifikasi tidak valid atau telah kedaluwarsa.");
       } else if (error === "token_expired") {
-        setErrorMessage("Masa berlaku tautan verifikasi telah habis. Silakan daftar ulang.");
+        setErrorMessage("Masa berlaku tautan verifikasi telah habis.");
       } else {
         setErrorMessage(`Terjadi kesalahan otorisasi (${error}). Silakan coba lagi.`);
       }
@@ -78,57 +79,69 @@ function LoginFormContent() {
 
   const redirectUrl = searchParams.get("redirect") || "/owner/dashboard";
 
-  // Akses Cepat Demo: Disimpan di sessionStorage murni (otomatis terhapus saat browser ditutup)
-  const handleQuickDemoLogin = () => {
-    setIsLoading(true);
-    try {
-      localStorage.removeItem("tapak_owner_session");
-      sessionStorage.setItem(
-        "tapak_owner_session",
-        JSON.stringify({
-          type: "quick_demo",
-          email: "owner.demo@tapak.id",
-          name: "Mitra Demo Tapak",
-          loggedInAt: Date.now(),
-        })
-      );
-    } catch {
-      // ignore
-    }
-    setTimeout(() => {
-      router.push(redirectUrl);
-    }, 400);
-  };
-
-  // Google OAuth Login Flow
+  // Alur Login Akun Google
   const handleGoogleLogin = () => {
     setIsGoogleLoading(true);
     window.location.href = "/api/auth/google";
   };
 
-  // Email & Password Submit
+  // Alur Login Form Email & Sandi
   const handleLogin = (e: React.FormEvent) => {
     e.preventDefault();
+    setErrorMessage(null);
     setIsLoading(true);
 
-    try {
-      localStorage.removeItem("tapak_owner_session");
-      sessionStorage.setItem(
-        "tapak_owner_session",
-        JSON.stringify({
-          type: "email",
-          email,
-          rememberUntilClose,
-          loggedInAt: Date.now(),
-        })
-      );
-    } catch {
-      // ignore
+    const cleanEmail = email.trim().toLowerCase();
+    const cleanPassword = password;
+
+    if (!cleanEmail || !cleanPassword) {
+      setIsLoading(false);
+      setErrorMessage("Email dan kata sandi wajib diisi.");
+      return;
     }
 
+    // 1. Validasi Super Admin
+    if (cleanEmail === "admin@admin.com") {
+      if (cleanPassword === "An1357@$") {
+        const superAdminUser = {
+          email: "admin@admin.com",
+          name: "Super Admin",
+          role: "SUPER_ADMIN",
+          type: "admin",
+          loggedInAt: Date.now(),
+        };
+
+        login(superAdminUser);
+        setTimeout(() => {
+          router.push(redirectUrl);
+        }, 300);
+        return;
+      } else {
+        setIsLoading(false);
+        setErrorMessage("Kata sandi Super Admin tidak valid.");
+        return;
+      }
+    }
+
+    // 2. Validasi Pengguna / Mitra Lainnya
+    if (cleanPassword.length < 6) {
+      setIsLoading(false);
+      setErrorMessage("Kata sandi minimal 6 karakter.");
+      return;
+    }
+
+    const userData = {
+      email: cleanEmail,
+      name: cleanEmail.split("@")[0],
+      role: "USER",
+      type: "email",
+      loggedInAt: Date.now(),
+    };
+
+    login(userData);
     setTimeout(() => {
       router.push(redirectUrl);
-    }, 500);
+    }, 300);
   };
 
   // Handle Forgot Password Request with Resend
@@ -176,7 +189,7 @@ function LoginFormContent() {
             Tapak<span className="text-[#3D77EE]">.</span>
           </span>
           <span className="ml-2 px-2 py-0.5 text-[10px] font-bold tracking-wider uppercase text-[#3D77EE] bg-blue-50 border border-blue-100 rounded-md">
-            {t("nav.owner_studio", "Owner Portal")}
+            {t("nav.owner_studio", "Studio Mitra")}
           </span>
         </Link>
 
@@ -198,12 +211,12 @@ function LoginFormContent() {
             <Building2 className="w-6 h-6" />
           </div>
           <h1 className="text-xl sm:text-2xl font-extrabold text-[#111827] tracking-tight">
-            {t("login.title", "Masuk ke Studio Pemilik")}
+            {t("login.title", "Masuk ke Studio Tapak.")}
           </h1>
           <p className="text-xs text-[#687280] mt-1.5 leading-relaxed">
             {t(
               "login.subtitle",
-              "Kelola listing sewa, pantau leads prospek WhatsApp, dan perbarui paket iklan Anda."
+              "Kelola properti sewa, pantau leads prospek WhatsApp, dan perbarui paket iklan Anda."
             )}
           </p>
         </div>
@@ -222,33 +235,7 @@ function LoginFormContent() {
           </div>
         )}
 
-        {/* 1. Akses Cepat Demo Mitra Pemilik (Session storage murni) */}
-        <button
-          type="button"
-          onClick={handleQuickDemoLogin}
-          disabled={isLoading || isGoogleLoading}
-          className="w-full mb-3 p-3 rounded-[12px] bg-gradient-to-r from-blue-50 via-indigo-50 to-blue-50 hover:from-blue-100 hover:to-indigo-100 border border-blue-200/80 text-[#1E3A8A] flex items-center justify-between gap-3 text-xs font-bold transition-all shadow-2xs group cursor-pointer"
-        >
-          <div className="flex items-center gap-2">
-            <span className="w-6 h-6 rounded-full bg-[#3D77EE] text-white flex items-center justify-center shrink-0">
-              <Sparkles className="w-3.5 h-3.5" />
-            </span>
-            <div className="text-left">
-              <div className="font-bold text-[#111827]">
-                {t("login.quick_demo", "Akses Cepat Demo Mitra Pemilik")}
-              </div>
-              <div className="text-[10px] text-[#687280]">
-                {t(
-                  "login.quick_demo_sub",
-                  "1-Klik langsung masuk (sesi dihapus saat browser ditutup)"
-                )}
-              </div>
-            </div>
-          </div>
-          <ArrowRight className="w-4 h-4 text-[#3D77EE] group-hover:translate-x-1 transition-transform shrink-0" />
-        </button>
-
-        {/* 2. Tombol Masuk / Daftar dengan Akun Google */}
+        {/* 1. Tombol Masuk dengan Akun Google */}
         <button
           type="button"
           onClick={handleGoogleLogin}
@@ -287,16 +274,18 @@ function LoginFormContent() {
           </span>
         </div>
 
-        {/* Login Form */}
-        <form onSubmit={handleLogin} className="space-y-4">
+        {/* Login Form dengan Proteksi Anti-Simpan Riwayat Sandi */}
+        <form onSubmit={handleLogin} autoComplete="off" className="space-y-4">
           <div>
             <label className="block text-xs font-bold text-[#111827] mb-1.5">
-              {t("login.email_label", "Alamat Email Mitra")}
+              {t("login.email_label", "Alamat Email")}
             </label>
             <div className="relative">
               <Mail className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
               <input
                 type="email"
+                name="tapak_auth_email"
+                autoComplete="off"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder="nama@domain.com"
@@ -329,6 +318,8 @@ function LoginFormContent() {
               <Lock className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
               <input
                 type={showPassword ? "text" : "password"}
+                name="tapak_auth_password"
+                autoComplete="new-password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 placeholder="Masukkan kata sandi..."
@@ -368,10 +359,7 @@ function LoginFormContent() {
               htmlFor="remember-me"
               className="ml-2 text-xs text-[#687280] select-none cursor-pointer"
             >
-              {t(
-                "login.remember_until_close",
-                "Ingat perangkat ini sampai browser ditutup"
-              )}
+              {t("login.remember_until_close", "Ingat sesi di perangkat ini sampai browser ditutup")}
             </label>
           </div>
 
@@ -384,7 +372,7 @@ function LoginFormContent() {
               <span>Memproses Akses Studio...</span>
             ) : (
               <>
-                <span>{t("login.submit_btn", "Masuk ke Dashboard Owner")}</span>
+                <span>{t("login.submit_btn", "Masuk ke Studio")}</span>
                 <ArrowRight className="w-4 h-4" />
               </>
             )}
@@ -501,7 +489,7 @@ function LoginFormContent() {
                       type="email"
                       value={forgotEmail}
                       onChange={(e) => setForgotEmail(e.target.value)}
-                      placeholder="Contoh: roim9229@gmail.com"
+                      placeholder="Contoh: admin@admin.com"
                       required
                       className="w-full pl-10 pr-4 py-2.5 bg-slate-50 border border-[#E2E8F0] rounded-[10px] text-xs sm:text-sm font-medium text-[#111827] focus:outline-none focus:bg-white focus:border-[#3D77EE] focus:ring-1 focus:ring-[#3D77EE] transition-all"
                     />

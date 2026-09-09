@@ -2,7 +2,7 @@
 
 import React from "react";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import {
   LayoutGrid,
   Home,
@@ -15,6 +15,7 @@ import {
   LogOut,
   X,
 } from "lucide-react";
+import { useAuth } from "@/context/AuthContext";
 
 interface OwnerSidebarProps {
   isOpen?: boolean;
@@ -23,6 +24,8 @@ interface OwnerSidebarProps {
 
 export default function OwnerSidebar({ isOpen = false, onClose }: OwnerSidebarProps) {
   const pathname = usePathname();
+  const router = useRouter();
+  const { logout } = useAuth();
 
   const isDashboard = pathname === "/owner/dashboard" || pathname === "/owner";
   const isProperti = pathname === "/owner/properti";
@@ -189,13 +192,17 @@ export default function OwnerSidebar({ isOpen = false, onClose }: OwnerSidebarPr
             <span>Bantuan &amp; Dukungan</span>
           </a>
 
-          <Link
-            href="/explore"
-            className="flex items-center gap-2.5 px-3 py-2 text-red-600 hover:bg-red-50 rounded-xl transition-all text-xs font-semibold"
+          <button
+            type="button"
+            onClick={() => {
+              logout();
+              router.push("/login");
+            }}
+            className="flex items-center gap-2.5 px-3 py-2 text-red-600 hover:bg-red-50 rounded-xl transition-all text-xs font-semibold w-full text-left cursor-pointer"
           >
             <LogOut className="w-4 h-4" />
-            <span>Keluar ke Web Publik</span>
-          </Link>
+            <span>Keluar (Logout)</span>
+          </button>
         </div>
       </aside>
     </>

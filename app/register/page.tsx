@@ -15,8 +15,6 @@ import {
   CheckCircle2,
   AlertCircle,
   ExternalLink,
-  UserCheck,
-  Building2,
 } from "lucide-react";
 import LanguageToggle from "@/components/LanguageToggle";
 
@@ -29,7 +27,6 @@ function RegisterFormContent() {
   const [phone, setPhone] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
-  const [userType, setUserType] = useState<"renter" | "owner">("renter");
   const [agreeTerms, setAgreeTerms] = useState(true);
 
   const [showPassword, setShowPassword] = useState(false);
@@ -89,7 +86,6 @@ function RegisterFormContent() {
           email: email.trim(),
           phone: phone.trim(),
           password,
-          userType,
         }),
       });
 
@@ -229,35 +225,7 @@ function RegisterFormContent() {
               </div>
             )}
 
-            {/* Role Selection Tabs */}
-            <div className="grid grid-cols-2 gap-2 p-1 bg-slate-100 rounded-[12px] mb-4 text-xs font-bold">
-              <button
-                type="button"
-                onClick={() => setUserType("renter")}
-                className={`py-2 px-3 rounded-[9px] flex items-center justify-center gap-1.5 transition-all cursor-pointer ${
-                  userType === "renter"
-                    ? "bg-white text-[#3D77EE] shadow-2xs"
-                    : "text-slate-600 hover:text-slate-900"
-                }`}
-              >
-                <UserCheck className="w-3.5 h-3.5" />
-                <span>Pencari Hunian</span>
-              </button>
-              <button
-                type="button"
-                onClick={() => setUserType("owner")}
-                className={`py-2 px-3 rounded-[9px] flex items-center justify-center gap-1.5 transition-all cursor-pointer ${
-                  userType === "owner"
-                    ? "bg-white text-[#3D77EE] shadow-2xs"
-                    : "text-slate-600 hover:text-slate-900"
-                }`}
-              >
-                <Building2 className="w-3.5 h-3.5" />
-                <span>Pemilik / Agen</span>
-              </button>
-            </div>
-
-            <form onSubmit={handleSubmit} className="space-y-3.5">
+            <form onSubmit={handleSubmit} autoComplete="off" className="space-y-3.5">
               {/* Nama Lengkap */}
               <div>
                 <label className="block text-xs font-bold text-[#111827] mb-1">
@@ -267,6 +235,8 @@ function RegisterFormContent() {
                   <User className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
                   <input
                     type="text"
+                    name="tapak_reg_name"
+                    autoComplete="off"
                     value={name}
                     onChange={(e) => setName(e.target.value)}
                     placeholder="Contoh: Budi Santoso"
@@ -285,9 +255,11 @@ function RegisterFormContent() {
                   <Mail className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
                   <input
                     type="email"
+                    name="tapak_reg_email"
+                    autoComplete="off"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
-                    placeholder="roim9229@gmail.com"
+                    placeholder="nama@domain.com"
                     required
                     className="w-full pl-10 pr-4 py-2 bg-slate-50 border border-[#E2E8F0] rounded-[10px] text-xs sm:text-sm font-medium text-[#111827] focus:outline-none focus:bg-white focus:border-[#3D77EE] focus:ring-1 focus:ring-[#3D77EE] transition-all"
                   />
@@ -303,6 +275,8 @@ function RegisterFormContent() {
                   <Phone className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
                   <input
                     type="tel"
+                    name="tapak_reg_phone"
+                    autoComplete="off"
                     value={phone}
                     onChange={(e) => setPhone(e.target.value)}
                     placeholder="Contoh: 081234567890"
@@ -321,6 +295,8 @@ function RegisterFormContent() {
                   <Lock className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
                   <input
                     type={showPassword ? "text" : "password"}
+                    name="tapak_reg_password"
+                    autoComplete="new-password"
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     placeholder="Minimal 6 karakter..."
@@ -351,6 +327,8 @@ function RegisterFormContent() {
                   <Lock className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
                   <input
                     type={showConfirmPassword ? "text" : "password"}
+                    name="tapak_reg_confirm_password"
+                    autoComplete="new-password"
                     value={confirmPassword}
                     onChange={(e) => setConfirmPassword(e.target.value)}
                     placeholder="Ulangi kata sandi..."

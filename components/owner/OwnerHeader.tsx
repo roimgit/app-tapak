@@ -2,15 +2,28 @@
 
 import React, { useState } from "react";
 import Link from "next/link";
-import { Search, Bell, Menu, ExternalLink } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { Search, Bell, Menu, ExternalLink, LogOut } from "lucide-react";
+import { useAuth } from "@/context/AuthContext";
 
 interface OwnerHeaderProps {
   onToggleSidebar?: () => void;
 }
 
 export default function OwnerHeader({ onToggleSidebar }: OwnerHeaderProps) {
+  const router = useRouter();
+  const { user, logout } = useAuth();
   const [searchQuery, setSearchQuery] = useState("");
   const [showNotifications, setShowNotifications] = useState(false);
+
+  const displayName = user?.name || (user?.email ? user.email.split("@")[0] : "Mitra Tapak.");
+  const displayRole = user?.role === "SUPER_ADMIN" ? "Super Admin" : "Mitra Pemilik";
+  const initialLetter = displayName.charAt(0).toUpperCase();
+
+  const handleLogout = () => {
+    logout();
+    router.push("/login");
+  };
 
   return (
     <header className="fixed top-0 left-0 md:left-[260px] right-0 h-16 bg-white/95 backdrop-blur-xl border-b border-slate-200/80 shadow-[0_1px_8px_rgba(0,0,0,0.03)] z-30 flex items-center justify-between px-4 sm:px-6 lg:px-8">
@@ -37,8 +50,8 @@ export default function OwnerHeader({ onToggleSidebar }: OwnerHeaderProps) {
         </div>
       </div>
 
-      {/* Sisi Kanan: Notifikasi + Profil Avatar */}
-      <div className="flex items-center gap-3 sm:gap-4">
+      {/* Sisi Kanan: Notifikasi + Profil Avatar + Tombol Logout */}
+      <div className="flex items-center gap-2.5 sm:gap-3">
         {/* Tombol Notifikasi */}
         <div className="relative">
           <button
@@ -58,14 +71,9 @@ export default function OwnerHeader({ onToggleSidebar }: OwnerHeaderProps) {
                 <span className="text-[10px] text-[#3D77EE] font-semibold">Tandai sudah dibaca</span>
               </div>
               <div className="py-2.5 border-b border-slate-100">
-                <span className="font-bold text-[#111827] block">Pembayaran Berhasil Dilunasi</span>
-                <p className="text-[11px] text-slate-500 mt-0.5">Paket Multi-Lapak Anda telah aktif dan kuota siap digunakan.</p>
+                <span className="font-bold text-[#111827] block">Sistem Tapak. Siap</span>
+                <p className="text-[11px] text-slate-500 mt-0.5">Semua layanan listing dan transaksi berjalan optimal.</p>
                 <span className="text-[10px] text-slate-400 mt-1 block">Baru saja</span>
-              </div>
-              <div className="py-2.5">
-                <span className="font-bold text-[#111827] block">Prospek Baru di WhatsApp</span>
-                <p className="text-[11px] text-slate-500 mt-0.5">Hendra Wijaya mengirim pertanyaan untuk Senopati Suites 2BR.</p>
-                <span className="text-[10px] text-slate-400 mt-1 block">12 menit lalu</span>
               </div>
             </div>
           )}
@@ -83,20 +91,31 @@ export default function OwnerHeader({ onToggleSidebar }: OwnerHeaderProps) {
           <ExternalLink className="w-3.5 h-3.5" />
         </Link>
 
-        {/* Profil Akun Pemilik */}
-        <div className="flex items-center gap-2.5">
-          <div className="w-8 h-8 rounded-full bg-gradient-to-tr from-[#3D77EE] to-sky-400 p-0.5 shadow-xs">
-            <div className="w-full h-full rounded-full bg-white flex items-center justify-center font-bold text-xs text-[#3D77EE]">
-              O
-            </div>
+        {/* Profil Akun Super Admin */}
+        <div className="flex items-center gap-2.5 pl-1 sm:pl-2">
+          <div className="w-8 h-8 rounded-full bg-[#3D77EE] text-white flex items-center justify-center font-bold text-xs shadow-xs">
+            {initialLetter}
           </div>
-          <div className="hidden sm:flex flex-col">
-            <span className="text-xs font-bold text-[#111827] leading-tight">Oim</span>
+          <div className="hidden sm:flex flex-col text-left">
+            <span className="text-xs font-bold text-[#111827] leading-tight">
+              {displayName}
+            </span>
             <span className="text-[10px] text-[#3D77EE] font-bold uppercase tracking-wider">
-              Owner Pro
+              {displayRole}
             </span>
           </div>
         </div>
+
+        {/* Tombol Logout Cepat */}
+        <button
+          type="button"
+          onClick={handleLogout}
+          className="p-2 rounded-[10px] text-slate-400 hover:text-red-600 hover:bg-red-50 transition-colors cursor-pointer ml-1"
+          title="Keluar dari Akun"
+          aria-label="Keluar dari Akun"
+        >
+          <LogOut className="w-4 h-4" />
+        </button>
       </div>
     </header>
   );

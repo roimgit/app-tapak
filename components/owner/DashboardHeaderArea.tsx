@@ -8,7 +8,7 @@ interface DashboardHeaderAreaProps {
 }
 
 export default function DashboardHeaderArea({
-  ownerName = "Oim",
+  ownerName = "Super Admin",
   quotaAvailable = 2,
 }: DashboardHeaderAreaProps) {
   return (

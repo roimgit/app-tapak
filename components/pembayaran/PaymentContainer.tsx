@@ -47,9 +47,9 @@ export default function PaymentContainer({
             planId,
             billingMode,
             paymentMethod: channel.toUpperCase(),
-            customerName: "Oim — Pemilik Aset",
+            customerName: "Super Admin",
             customerPhone: "081234567890",
-            userId: "owner_demo",
+            userId: "admin@admin.com",
           }),
         });
 
