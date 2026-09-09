@@ -24,6 +24,7 @@ export const metadata: Metadata = {
 
 import { LanguageProvider } from "@/context/LanguageContext";
 import { AuthProvider } from "@/context/AuthContext";
+import PageLoadingIndicator from "@/components/PageLoadingIndicator";
 
 export default function RootLayout({
   children,
@@ -42,7 +43,10 @@ export default function RootLayout({
       </head>
       <body className="min-h-screen bg-[#F3F6FB] text-[#111827] font-sans antialiased selection:bg-[#3D77EE] selection:text-white">
         <AuthProvider>
-          <LanguageProvider>{children}</LanguageProvider>
+          <LanguageProvider>
+            <PageLoadingIndicator />
+            {children}
+          </LanguageProvider>
         </AuthProvider>
       </body>
     </html>
