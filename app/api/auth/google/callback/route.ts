@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { prisma } from "@/lib/prisma";
 
 export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url);
@@ -43,6 +44,28 @@ export async function GET(request: NextRequest) {
       headers: { Authorization: `Bearer ${tokenData.access_token}` },
     });
     const userData = await userRes.json();
+    const cleanEmail = typeof userData?.email === "string" ? userData.email.toLowerCase() : "";
+
+    // Simpan / Sinkronkan profil akun Google ke database PostgreSQL secara permanen
+    if (cleanEmail) {
+      try {
+        await prisma.user.upsert({
+          where: { email: cleanEmail },
+          update: {
+            name: userData.name || cleanEmail.split("@")[0],
+            is_verified: true,
+          },
+          create: {
+            email: cleanEmail,
+            name: userData.name || cleanEmail.split("@")[0],
+            role: cleanEmail === "admin@admin.com" ? "SUPER_ADMIN" : "USER",
+            is_verified: true,
+          },
+        });
+      } catch (dbErr) {
+        console.error("[GOOGLE-AUTH] Gagal menyimpan akun Google ke database:", dbErr);
+      }
+    }
 
     // Buat response redirect ke dashboard pemilik
     const response = NextResponse.redirect(
@@ -51,9 +74,9 @@ export async function GET(request: NextRequest) {
 
     // Set cookie sesi sementara (HTTP-only)
     response.cookies.set("tapak_google_session", JSON.stringify({
-      email: userData.email,
-      name: userData.name,
-      picture: userData.picture,
+      email: cleanEmail,
+      name: userData.name || cleanEmail.split("@")[0],
+      picture: userData.picture || null,
     }), {
       path: "/",
       httpOnly: true,

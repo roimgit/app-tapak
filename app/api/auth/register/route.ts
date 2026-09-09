@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { sendAccountVerificationEmail } from "@/lib/mail";
+import { prisma } from "@/lib/prisma";
 
 interface VerificationTokenRecord {
   email: string;
@@ -73,6 +74,27 @@ export async function POST(request: NextRequest) {
       expiresAt,
       verified: false,
     });
+
+    // Simpan data calon user ke database PostgreSQL
+    try {
+      await prisma.user.upsert({
+        where: { email },
+        update: {
+          name,
+          phone,
+          role: userType === "owner" ? "OWNER" : "USER",
+        },
+        create: {
+          email,
+          name,
+          phone,
+          role: userType === "owner" ? "OWNER" : "USER",
+          is_verified: false,
+        },
+      });
+    } catch (dbErr) {
+      console.error("[AUTH-REGISTER] Database upsert error:", dbErr);
+    }
 
     const verificationLink = `${baseUrl}/api/auth/verify-email?token=${token}&email=${encodeURIComponent(email)}`;
 

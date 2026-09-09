@@ -43,6 +43,7 @@ function LoginFormContent() {
   const [forgotEmail, setForgotEmail] = useState("");
   const [isForgotLoading, setIsForgotLoading] = useState(false);
   const [forgotError, setForgotError] = useState<string | null>(null);
+  const [forgotNotRegistered, setForgotNotRegistered] = useState(false);
   const [forgotSuccess, setForgotSuccess] = useState<string | null>(null);
   const [forgotDevLink, setForgotDevLink] = useState<string | null>(null);
 
@@ -148,6 +149,7 @@ function LoginFormContent() {
   const handleForgotPasswordSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setForgotError(null);
+    setForgotNotRegistered(false);
     setForgotSuccess(null);
     setForgotDevLink(null);
     setIsForgotLoading(true);
@@ -162,7 +164,10 @@ function LoginFormContent() {
       const data = await res.json();
 
       if (!res.ok) {
-        setForgotError(data.error || "Gagal mengirimkan email reset kata sandi.");
+        if (res.status === 404 || data.notRegistered) {
+          setForgotNotRegistered(true);
+        }
+        setForgotError(data.error || "Gagal memproses permintaan reset kata sandi.");
         setIsForgotLoading(false);
         return;
       }
@@ -434,9 +439,23 @@ function LoginFormContent() {
             </p>
 
             {forgotError && (
-              <div className="mb-4 p-3 rounded-[12px] bg-red-50 border border-red-200 text-xs text-red-700 flex items-start gap-2">
-                <AlertCircle className="w-4 h-4 text-red-500 shrink-0 mt-0.5" />
-                <span>{forgotError}</span>
+              <div className="mb-4 p-3.5 rounded-[12px] bg-red-50 border border-red-200 text-xs text-red-700 flex flex-col gap-2.5 animate-in fade-in">
+                <div className="flex items-start gap-2">
+                  <AlertCircle className="w-4 h-4 text-red-500 shrink-0 mt-0.5" />
+                  <span className="leading-relaxed">{forgotError}</span>
+                </div>
+                {forgotNotRegistered && (
+                  <div className="pt-1 border-t border-red-200/60">
+                    <Link
+                      href={`/register?email=${encodeURIComponent(forgotEmail)}`}
+                      onClick={() => setForgotModalOpen(false)}
+                      className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-[8px] bg-white border border-red-200 text-[#3D77EE] font-bold text-xs hover:bg-blue-50 transition-colors shadow-2xs cursor-pointer"
+                    >
+                      <span>Daftar Akun Baru Sekarang</span>
+                      <ArrowRight className="w-3.5 h-3.5" />
+                    </Link>
+                  </div>
+                )}
               </div>
             )}
 

@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { prisma } from "@/lib/prisma";
 
 export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url);
@@ -23,6 +24,16 @@ export async function GET(request: NextRequest) {
 
     record.verified = true;
     verificationTokens?.delete(token);
+  }
+
+  // Update status is_verified di database
+  try {
+    await prisma.user.update({
+      where: { email: email.toLowerCase() },
+      data: { is_verified: true },
+    });
+  } catch (dbErr) {
+    console.error("[AUTH-VERIFY] Error updating user verification in DB:", dbErr);
   }
 
   // Redirect to login page with verified=true

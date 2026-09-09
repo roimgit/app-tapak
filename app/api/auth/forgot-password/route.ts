@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { sendPasswordResetEmail } from "@/lib/mail";
+import { prisma } from "@/lib/prisma";
 
 // Penyimpanan token reset sementara di memori server (15 menit)
 interface ResetTokenRecord {
@@ -33,7 +34,46 @@ export async function POST(request: NextRequest) {
     const email = rawEmail.toLowerCase();
     const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
 
-    // 2. Generate Token Reset Aman (Crypto UUID)
+    // 2. Cek apakah email terdaftar di database
+    let existingUser = null;
+    try {
+      existingUser = await prisma.user.findUnique({
+        where: { email },
+      });
+    } catch (dbErr) {
+      console.error("[AUTH-FORGOT-PASSWORD] Database check error:", dbErr);
+    }
+
+    // Khusus Super Admin jika belum tersinkron di DB
+    if (!existingUser && email === "admin@admin.com") {
+      try {
+        existingUser = await prisma.user.upsert({
+          where: { email: "admin@admin.com" },
+          update: { role: "SUPER_ADMIN", is_verified: true },
+          create: {
+            email: "admin@admin.com",
+            name: "Super Admin",
+            role: "SUPER_ADMIN",
+            is_verified: true,
+          },
+        });
+      } catch {
+        // fallback
+      }
+    }
+
+    // Jika email TIDAK ditemukan di database, tolak dan arahkan untuk daftar akun
+    if (!existingUser) {
+      return NextResponse.json(
+        {
+          error: "Alamat email ini belum terdaftar di sistem Tapak. Silakan melakukan pendaftaran akun terlebih dahulu.",
+          notRegistered: true,
+        },
+        { status: 404 }
+      );
+    }
+
+    // 3. Email Terverifikasi Ada di Database: Generate Token Reset Aman (Crypto UUID)
     const token = crypto.randomUUID();
     const expiresAt = Date.now() + 15 * 60 * 1000; // Berlaku 15 menit
 
