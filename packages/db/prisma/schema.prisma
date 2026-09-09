@@ -1,0 +1,134 @@
+// Prisma schema for Tapak.
+// Sesuai dengan spesifikasi arsitektur PostGIS & Tapak Rules
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+enum VerificationTier {
+  NONE
+  BRONZE
+  SILVER
+  GOLD
+}
+
+model Listing {
+  id                String           @id @default(cuid())
+  title             String
+  slug              String           @unique
+  description       String
+  price             Decimal          @db.Decimal(15, 2)
+  deposit           Decimal?         @db.Decimal(15, 2)
+  maintenance_fee   Decimal?         @db.Decimal(15, 2)
+  utility_estimate  Decimal?         @db.Decimal(15, 2)
+  verification_tier VerificationTier @default(NONE)
+
+  property_type     String           // Apartemen, Rumah, Kost, Ruko, Vila
+  bedrooms          Int              @default(1)
+  bathrooms         Int              @default(1)
+  area_sqm          Float            // Luas dalam m2
+  address           String
+  district          String           // Kecamatan/Area (e.g. SCBD, BSD, Setiabudi)
+  city              String           // Jakarta Selatan, Tangerang Selatan, dll.
+
+  latitude          Float
+  longitude         Float
+  location          Unsupported("geometry(Point, 4326)")?
+
+  images            String[]
+  amenities         String[]
+  is_available      Boolean          @default(true)
+
+  nearby_amenities  NearbyAmenity[]
+
+  agent_name        String           @default("Konsultan Tapak")
+  agent_phone       String           @default("6281234567890")
+
+  created_at        DateTime         @default(now())
+  updated_at        DateTime         @updatedAt
+
+  @@index([city, district])
+  @@index([verification_tier])
+  @@map("listings")
+}
+
+enum AmenityCategory {
+  TRANSPORT
+  EDUCATION
+  HEALTH
+  WORSHIP
+  SHOPPING
+}
+
+model NearbyAmenity {
+  id          String          @id @default(uuid())
+  listing_id  String
+  listing     Listing         @relation(fields: [listing_id], references: [id], onDelete: Cascade)
+  category    AmenityCategory
+  name        String
+  distance    String          // contoh: "450 m"
+  duration    String          // contoh: "5 menit jalan kaki"
+  latitude    Float
+  longitude   Float
+  created_at  DateTime        @default(now())
+
+  @@index([listing_id])
+  @@index([category])
+  @@map("nearby_amenities")
+}
+
+
+enum PaymentStatus {
+  PENDING
+  SETTLED
+  EXPIRED
+  FAILED
+}
+
+model Subscription {
+  id           String    @id @default(cuid())
+  user_id      String    @default("owner_demo")
+  package_name String
+  quota_total  Int
+  quota_used   Int       @default(0)
+  start_date   DateTime  @default(now())
+  end_date     DateTime
+  is_active    Boolean   @default(true)
+
+  payments     Payment[]
+
+  created_at   DateTime  @default(now())
+  updated_at   DateTime  @updatedAt
+
+  @@index([user_id])
+  @@map("subscriptions")
+}
+
+model Payment {
+  id              String        @id @default(cuid())
+  user_id         String        @default("owner_demo")
+  subscription_id String?
+  order_id        String        @unique
+  amount          Decimal       @db.Decimal(15, 2)
+  payment_method  String        // QRIS, VA_BCA, VA_MANDIRI, VA_BRI, VA_BNI, GOPAY, SHOPEEPAY
+  reference_no    String?
+  qr_content      String?       @db.Text
+  qr_url          String?       @db.Text
+  va_number       String?
+  status          PaymentStatus @default(PENDING)
+
+  subscription    Subscription? @relation(fields: [subscription_id], references: [id], onDelete: SetNull)
+
+  created_at      DateTime      @default(now())
+  updated_at      DateTime      @updatedAt
+
+  @@index([user_id])
+  @@index([status])
+  @@map("payments")
+}
