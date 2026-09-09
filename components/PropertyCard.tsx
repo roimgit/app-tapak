@@ -11,6 +11,7 @@ interface PropertyCardProps {
   listing: ListingItem;
   layout?: "grid" | "horizontal";
   onSelect?: (id: string) => void;
+  onHover?: (id: string | null) => void;
   onViewDetail?: (id: string) => void;
   isSelected?: boolean;
 }
@@ -19,6 +20,7 @@ export default function PropertyCard({
   listing,
   layout = "grid",
   onSelect,
+  onHover,
   onViewDetail,
   isSelected = false,
 }: PropertyCardProps) {
@@ -27,6 +29,8 @@ export default function PropertyCard({
   return (
     <div
       onClick={() => onSelect?.(listing.id)}
+      onMouseEnter={() => onHover?.(listing.id)}
+      onMouseLeave={() => onHover?.(null)}
       className={`group bg-white rounded-[18px] border transition-all duration-200 overflow-hidden flex ${
         isHorizontal ? "flex-col sm:flex-row h-auto" : "flex-col"
       } ${

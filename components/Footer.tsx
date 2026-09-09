@@ -54,6 +54,11 @@ export default function Footer() {
                   Ruko & Komersial
                 </Link>
               </li>
+              <li>
+                <Link href="/artikel" className="hover:text-[#3D77EE] transition-colors font-medium text-[#3D77EE]">
+                  Artikel & Wawasan
+                </Link>
+              </li>
             </ul>
           </div>
 

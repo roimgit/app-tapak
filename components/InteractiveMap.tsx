@@ -3,54 +3,138 @@
 import React, { useEffect, useRef, useMemo } from "react";
 import type { Map as LeafletMap, Marker as LeafletMarker } from "leaflet";
 import { ListingItem, BoundsFilter } from "@/lib/types";
-import { formatRupiah, debounce } from "@/lib/utils";
+import { formatRupiah, formatShortRupiah, debounce } from "@/lib/utils";
 
 interface InteractiveMapProps {
   listings: ListingItem[];
   selectedListingId?: string | null;
-  onSelectListing?: (id: string) => void;
+  hoveredListingId?: string | null;
+  onSelectListing?: (id: string | null) => void;
   onViewDetail?: (id: string) => void;
   onBoundsChange?: (bounds: BoundsFilter) => void;
+  onMapClick?: () => void;
+  isListOpen?: boolean;
   center?: [number, number];
   zoom?: number;
+}
+
+function escapeHtml(str: string): string {
+  return str
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#039;");
+}
+
+function createMarkCardIcon(
+  L: typeof import("leaflet"),
+  item: ListingItem,
+  isActive: boolean
+) {
+  const fallbackImg =
+    "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=800&q=80";
+  const imgSrc =
+    Array.isArray(item.images) &&
+    item.images.length > 0 &&
+    typeof item.images[0] === "string" &&
+    item.images[0].trim().length > 0
+      ? item.images[0]
+      : fallbackImg;
+  const safeTitle = escapeHtml(item.title);
+  const safeDistrict = escapeHtml(item.district || "");
+  const shortPrice = formatShortRupiah(item.price);
+  const categoryTag = escapeHtml((item.property_type || "Hunian").toUpperCase());
+
+  return L.divIcon({
+    className: "tapak-leaflet-mark-icon",
+    html: `
+      <div class="tapak-marker-card-pin ${isActive ? "active" : ""}">
+        <div class="tapak-marker-banner">
+          <div class="tapak-marker-header-pill">${categoryTag}</div>
+          <div class="tapak-marker-body-card">
+            <div class="tapak-marker-body-title">Mulai ${shortPrice}/bln</div>
+            <div class="tapak-marker-body-sub">${safeDistrict}</div>
+          </div>
+        </div>
+        <div class="tapak-marker-photo-wrapper">
+          <div class="tapak-marker-photo-circle">
+            <img src="${imgSrc}" alt="${safeTitle}" onerror="this.src='${fallbackImg}'" />
+          </div>
+          <div class="tapak-marker-photo-pointer"></div>
+        </div>
+      </div>
+    `,
+    iconSize: [110, 94],
+    iconAnchor: [55, 94],
+    popupAnchor: [0, -96],
+  });
 }
 
 export default function InteractiveMap({
   listings,
   selectedListingId,
+  hoveredListingId,
   onSelectListing,
   onViewDetail,
   onBoundsChange,
+  onMapClick,
+  isListOpen = true,
   center = [-6.2368, 106.8087],
   zoom = 12,
 }: InteractiveMapProps) {
   const mapContainerRef = useRef<HTMLDivElement>(null);
   const mapInstanceRef = useRef<LeafletMap | null>(null);
   const markersRef = useRef<Record<string, LeafletMarker>>({});
+  const leafletLibRef = useRef<typeof import("leaflet") | null>(null);
+
+  const initialCenterRef = useRef(center);
+  const initialZoomRef = useRef(zoom);
+  const onBoundsChangeRef = useRef(onBoundsChange);
+  onBoundsChangeRef.current = onBoundsChange;
+
+  const onSelectListingRef = useRef(onSelectListing);
+  onSelectListingRef.current = onSelectListing;
+  const onMapClickRef = useRef(onMapClick);
+  onMapClickRef.current = onMapClick;
 
   const debouncedBoundsChange = useMemo(
     () =>
       debounce((map: LeafletMap) => {
-        if (!onBoundsChange || !map) return;
+        if (!onBoundsChangeRef.current || !map) return;
         const bounds = map.getBounds();
-        onBoundsChange({
+        onBoundsChangeRef.current({
           minLat: bounds.getSouth(),
           minLng: bounds.getWest(),
           maxLat: bounds.getNorth(),
           maxLng: bounds.getEast(),
         });
       }, 300),
-    [onBoundsChange]
+    []
   );
 
+  // Auto-invalidate map size when container width/height changes (e.g. sidebar toggle)
   useEffect(() => {
+    if (!mapContainerRef.current) return;
+    const observer = new ResizeObserver(() => {
+      if (mapInstanceRef.current) {
+        mapInstanceRef.current.invalidateSize();
+      }
+    });
+    observer.observe(mapContainerRef.current);
+    return () => {
+      observer.disconnect();
+    };
+  }, []);
+
+  // Initialize map once on mount
+  useEffect(() => {
+    let isMounted = true;
+
     async function initMap() {
       if (!mapContainerRef.current) return;
 
-      if (mapInstanceRef.current) {
-        mapInstanceRef.current.remove();
-        mapInstanceRef.current = null;
-      }
+      if (mapInstanceRef.current) return;
 
       const container = mapContainerRef.current as unknown as { _leaflet_id?: unknown };
       if (container._leaflet_id) {
@@ -58,10 +142,13 @@ export default function InteractiveMap({
       }
 
       const L = (await import("leaflet")).default;
+      if (!isMounted) return;
+
+      leafletLibRef.current = L;
 
       const map = L.map(mapContainerRef.current, {
-        center,
-        zoom,
+        center: initialCenterRef.current,
+        zoom: initialZoomRef.current,
         zoomControl: false,
       });
 
@@ -75,88 +162,173 @@ export default function InteractiveMap({
       map.on("moveend", () => debouncedBoundsChange(map));
       map.on("zoomend", () => debouncedBoundsChange(map));
 
+      // Click on map outside markers: deselect mark and trigger onMapClick
+      map.on("click", () => {
+        onMapClickRef.current?.();
+        onSelectListingRef.current?.(null);
+      });
+
       mapInstanceRef.current = map;
       renderMarkers(L, map);
-    }
-
-    function renderMarkers(L: typeof import("leaflet"), map: LeafletMap) {
-      Object.values(markersRef.current).forEach((m) => m.remove());
-      markersRef.current = {};
-
-      if (!listings?.length) return;
-
-      listings.forEach((item, index) => {
-        const isSelected = selectedListingId === item.id;
-        const customIcon = L.divIcon({
-          className: "tapak-leaflet-icon",
-          html: `
-            <div class="tapak-pin ${isSelected ? "active" : ""}" style="width: 36px; height: 36px; background-color: ${isSelected ? "#2B55AB" : "#3D77EE"}; border-radius: 50% 50% 50% 0; transform: rotate(-45deg); display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 6px rgba(0,0,0,0.18); border: 2.5px solid #FFFFFF;">
-              <span style="transform: rotate(45deg); color: #FFFFFF; font-weight: 700; font-size: 13px;">${index + 1}</span>
-            </div>
-          `,
-          iconSize: [36, 36],
-          iconAnchor: [18, 36],
-          popupAnchor: [0, -36],
-        });
-
-        const marker = L.marker([item.latitude, item.longitude], { icon: customIcon }).addTo(map);
-
-        const popupContent = `
-          <div style="font-family: var(--font-inter), sans-serif; padding: 4px; max-width: 220px;">
-            <div style="font-size: 10px; font-weight: 700; color: #3D77EE; text-transform: uppercase; margin-bottom: 2px;">
-              ${item.property_type} • ${item.district}
-            </div>
-            <div style="font-size: 13px; font-weight: 700; color: #111827; margin-bottom: 4px; line-height: 1.3;">
-              ${item.title}
-            </div>
-            <div style="font-size: 14px; font-weight: 800; color: #111827;">
-              ${formatRupiah(item.price)}<span style="font-size: 11px; font-weight: 400; color: #687280;">/bln</span>
-            </div>
-            <div style="margin-top: 6px;">
-              <button onclick="window.__tapak_open_detail && window.__tapak_open_detail('${item.id}')" style="display: inline-block; background: #3D77EE; color: white; border: none; padding: 5px 12px; border-radius: 6px; font-size: 11px; font-weight: 700; cursor: pointer;">Lihat Detail di Panel</button>
-            </div>
-          </div>
-        `;
-
-        marker.bindPopup(popupContent);
-        marker.on("click", () => onSelectListing?.(item.id));
-        markersRef.current[item.id] = marker;
-      });
-
-      const mockClusterCoord: [number, number] = [-6.2300, 106.8120];
-      const clusterIcon = L.divIcon({
-        className: "tapak-leaflet-cluster",
-        html: `
-          <div class="tapak-cluster-pin" style="width: 44px; height: 44px; background-color: #3D77EE; border-radius: 50% 50% 50% 0; transform: rotate(-45deg); display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 6px rgba(0,0,0,0.18); border: 3px solid #FFFFFF;">
-            <span style="transform: rotate(45deg); color: #FFFFFF; font-weight: 800; font-size: 14px;">4+</span>
-          </div>
-        `,
-        iconSize: [44, 44],
-        iconAnchor: [22, 44],
-      });
-
-      L.marker(mockClusterCoord, { icon: clusterIcon }).addTo(map);
     }
 
     initMap();
 
     return () => {
+      isMounted = false;
       if (mapInstanceRef.current) {
         mapInstanceRef.current.remove();
         mapInstanceRef.current = null;
       }
     };
-  }, [center, zoom, debouncedBoundsChange, listings, selectedListingId, onSelectListing]);
+  }, []);
 
+  // Render markers when listings change or map finishes init
   useEffect(() => {
-    if (selectedListingId && mapInstanceRef.current && markersRef.current[selectedListingId]) {
-      const selected = listings.find((item) => item.id === selectedListingId);
-      if (selected) {
-        mapInstanceRef.current.setView([selected.latitude, selected.longitude], 14, { animate: true });
-        markersRef.current[selectedListingId].openPopup();
-      }
+    if (leafletLibRef.current && mapInstanceRef.current) {
+      renderMarkers(leafletLibRef.current, mapInstanceRef.current);
     }
-  }, [selectedListingId, listings]);
+  }, [listings]);
+
+  function renderMarkers(L: typeof import("leaflet"), map: LeafletMap) {
+    Object.values(markersRef.current).forEach((m) => m.remove());
+    markersRef.current = {};
+
+    if (!listings?.length) return;
+
+    const activeId = hoveredListingId || selectedListingId;
+
+    listings.forEach((item) => {
+      const isActive = item.id === activeId;
+      const customIcon = createMarkCardIcon(L, item, isActive);
+
+      const marker = L.marker([item.latitude, item.longitude], {
+        icon: customIcon,
+        zIndexOffset: isActive ? 1000 : 0,
+      }).addTo(map);
+
+      const fallbackImg =
+        "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=800&q=80";
+      const imgSrc =
+        Array.isArray(item.images) &&
+        item.images.length > 0 &&
+        typeof item.images[0] === "string" &&
+        item.images[0].trim().length > 0
+          ? item.images[0]
+          : fallbackImg;
+      const safeTitle = escapeHtml(item.title);
+      const safeDistrict = escapeHtml(item.district || "");
+      const safeCity = escapeHtml(item.city || "");
+      const safeType = escapeHtml((item.property_type || "Hunian").toUpperCase());
+      const formattedPrice = formatRupiah(item.price);
+
+      const popupContent = `
+        <div class="tapak-explore-popup" style="width: 260px; font-family: var(--font-inter), system-ui, sans-serif;">
+          <div
+            onclick="window.__tapak_open_detail && window.__tapak_open_detail('${item.id}')"
+            style="position: relative; width: 100%; height: 120px; background-color: #E2E8F0; overflow: hidden; cursor: pointer;"
+          >
+            <img
+              src="${imgSrc}"
+              alt="${safeTitle}"
+              style="width: 100%; height: 100%; object-fit: cover; display: block;"
+              loading="lazy"
+              onerror="this.src='${fallbackImg}'"
+            />
+            <div style="position: absolute; top: 8px; left: 8px; z-index: 2;">
+              <span style="background: #1E3A8A; color: #FFFFFF; font-size: 9.5px; font-weight: 700; padding: 2px 8px; border-radius: 5px; text-transform: uppercase; letter-spacing: 0.05em; display: inline-block; box-shadow: 0 1px 4px rgba(0,0,0,0.2);">
+                ${safeType}
+              </span>
+            </div>
+          </div>
+          <div style="padding: 10px 12px 12px 12px;">
+            <h4
+              onclick="window.__tapak_open_detail && window.__tapak_open_detail('${item.id}')"
+              style="font-family: var(--font-poppins), var(--font-inter), sans-serif; font-weight: 700; font-size: 13px; line-height: 1.35; margin: 0 0 3px 0; color: #111827; cursor: pointer; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;"
+              title="${safeTitle}"
+            >
+              ${safeTitle}
+            </h4>
+            <p style="font-size: 11px; color: #64748B; margin: 0 0 8px 0; line-height: 1.2;">
+              ${safeDistrict}, ${safeCity}
+            </p>
+
+            <div style="display: flex; align-items: center; gap: 8px; padding: 6px 0; border-top: 1px solid #F1F5F9; border-bottom: 1px solid #F1F5F9; margin-bottom: 8px; font-size: 11px; color: #64748B; font-weight: 500;">
+              <span>🛏️ ${item.bedrooms} KT</span>
+              <span>🚿 ${item.bathrooms} KM</span>
+              <span>📐 ${item.area_sqm} m²</span>
+            </div>
+
+            <div style="display: flex; align-items: center; justify-content: space-between; gap: 6px;">
+              <div>
+                <span style="font-size: 10px; color: #64748B; display: block; line-height: 1;">Mulai dari</span>
+                <div style="font-size: 13.5px; font-weight: 800; color: #111827; margin-top: 2px;">
+                  ${formattedPrice}<span style="font-size: 10px; font-weight: 500; color: #64748B;">/bln</span>
+                </div>
+              </div>
+              <button
+                type="button"
+                onclick="window.__tapak_open_detail && window.__tapak_open_detail('${item.id}')"
+                style="background: #3D77EE; color: #FFFFFF; font-size: 11px; font-weight: 700; padding: 5px 12px; border-radius: 8px; border: none; cursor: pointer; transition: background-color 0.15s ease;"
+                onmouseover="this.style.backgroundColor='#2B55AB'"
+                onmouseout="this.style.backgroundColor='#3D77EE'"
+              >
+                Lihat Detail
+              </button>
+            </div>
+          </div>
+        </div>
+      `;
+
+      marker.bindPopup(popupContent, {
+        className: "tapak-explore-popup-container",
+        minWidth: 260,
+        maxWidth: 280,
+        autoPan: false,
+      });
+
+      marker.on("click", (e) => {
+        L.DomEvent.stopPropagation(e);
+        onSelectListingRef.current?.(item.id);
+        marker.openPopup();
+      });
+
+      markersRef.current[item.id] = marker;
+    });
+  }
+
+  // Update active marker styling and open popup when hovered or selected
+  useEffect(() => {
+    const activeId = hoveredListingId || selectedListingId;
+
+    listings.forEach((item) => {
+      const marker = markersRef.current[item.id];
+      if (!marker) return;
+
+      const isActive = item.id === activeId;
+      const el = marker.getElement();
+      const pinEl = el?.querySelector<HTMLElement>(".tapak-marker-card-pin");
+
+      if (pinEl) {
+        if (isActive) {
+          pinEl.classList.add("active");
+          marker.setZIndexOffset(1000);
+        } else {
+          pinEl.classList.remove("active");
+          marker.setZIndexOffset(0);
+        }
+      }
+    });
+
+    if (activeId && markersRef.current[activeId]) {
+      const targetMarker = markersRef.current[activeId];
+      if (!targetMarker.isPopupOpen()) {
+        targetMarker.openPopup();
+      }
+    } else if (!activeId && mapInstanceRef.current) {
+      mapInstanceRef.current.closePopup();
+    }
+  }, [hoveredListingId, selectedListingId, listings]);
 
   useEffect(() => {
     if (typeof window !== "undefined") {
@@ -169,11 +341,16 @@ export default function InteractiveMap({
   return (
     <div className="relative w-full h-full min-h-[400px] rounded-[18px] overflow-hidden border border-[#E2E8F0]">
       <div ref={mapContainerRef} className="w-full h-full z-0" />
-      <div className="absolute top-3.5 left-3.5 z-[400] bg-white px-3 py-2 rounded-[10px] border border-[#E2E8F0] shadow-2xs text-xs flex items-center gap-2">
-        <div className="w-2.5 h-2.5 rounded-full bg-[#3D77EE]" />
-        <span className="font-semibold text-[#111827]">Pin Biru:</span>
-        <span className="text-[#687280]">Hunian Terverifikasi Tapak.</span>
+      <div
+        className={`absolute top-3.5 ${
+          isListOpen ? "left-3.5" : "left-16 sm:left-18"
+        } z-[400] bg-white/95 backdrop-blur-xs px-3 py-2 rounded-[10px] border border-[#E2E8F0] shadow-2xs text-xs flex items-center gap-2 transition-all`}
+      >
+        <div className="w-2.5 h-2.5 rounded-full bg-[#1E3A8A]" />
+        <span className="font-semibold text-[#111827]">Harga & Foto Properti:</span>
+        <span className="text-[#687280]">Klik mark untuk rincian unit</span>
       </div>
     </div>
   );
 }
+

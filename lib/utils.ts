@@ -15,6 +15,24 @@ export function formatRupiah(value: number | string): string {
   }).format(num);
 }
 
+export function formatShortRupiah(value: number | string): string {
+  const num = typeof value === "string" ? parseFloat(value) : value;
+  if (isNaN(num)) return "Rp 0";
+  if (num >= 1_000_000_000) {
+    const val = num / 1_000_000_000;
+    return `${val % 1 === 0 ? val : val.toFixed(1).replace(".", ",")} M`;
+  }
+  if (num >= 1_000_000) {
+    const val = num / 1_000_000;
+    return `${val % 1 === 0 ? val : val.toFixed(1).replace(".", ",")} Jt`;
+  }
+  if (num >= 1_000) {
+    const val = num / 1_000;
+    return `${val % 1 === 0 ? val : val.toFixed(1).replace(".", ",")} Rb`;
+  }
+  return num.toString();
+}
+
 export function debounce<Args extends unknown[]>(
   func: (...args: Args) => void,
   waitMs: number = 300

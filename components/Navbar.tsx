@@ -3,13 +3,13 @@
 import React, { useState, useEffect, useCallback } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Home, Map, Calculator, ShieldCheck, Menu, X, PlusCircle } from "lucide-react";
+import { Home, Map, BookOpen, ShieldCheck, Menu, X, PlusCircle } from "lucide-react";
 import MobileNavDrawer from "./MobileNavDrawer";
 
 const NAV_LINKS = [
   { href: "/", label: "Beranda", icon: Home },
   { href: "/explore", label: "Peta Explore", icon: Map },
-  { href: "/#kalkulator", label: "Kalkulator Total Biaya", icon: Calculator },
+  { href: "/artikel", label: "Artikel", icon: BookOpen },
   { href: "/#keunggulan", label: "Verifikasi Tapak.", icon: ShieldCheck },
 ];
 
@@ -24,24 +24,22 @@ export default function Navbar() {
       return;
     }
 
+    if (pathname.startsWith("/artikel")) {
+      setActiveHref("/artikel");
+      return;
+    }
+
     if (pathname === "/") {
       const hash = window.location.hash;
-      if (hash === "#kalkulator") {
-        setActiveHref("/#kalkulator");
-        return;
-      }
       if (hash === "#keunggulan") {
         setActiveHref("/#keunggulan");
         return;
       }
 
-      const kalkulatorEl = document.getElementById("kalkulator");
       const keunggulanEl = document.getElementById("keunggulan");
       const scrollY = window.scrollY;
 
-      if (kalkulatorEl && scrollY >= kalkulatorEl.offsetTop - 240) {
-        setActiveHref("/#kalkulator");
-      } else if (keunggulanEl && scrollY >= keunggulanEl.offsetTop - 240) {
+      if (keunggulanEl && scrollY >= keunggulanEl.offsetTop - 240) {
         setActiveHref("/#keunggulan");
       } else {
         setActiveHref("/");

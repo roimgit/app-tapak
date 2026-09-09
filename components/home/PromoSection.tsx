@@ -4,7 +4,7 @@ import { Sparkles, Megaphone, Tag, ArrowRight, CheckCircle2 } from "lucide-react
 
 export default function PromoSection() {
   return (
-    <section className="pb-12 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <section className="py-12 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
       <div className="flex items-center justify-between mb-6">
         <div>
           <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-[#3D77EE]">

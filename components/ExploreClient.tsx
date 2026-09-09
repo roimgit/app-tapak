@@ -2,6 +2,7 @@
 
 import React, { useState, useMemo, useCallback } from "react";
 import dynamic from "next/dynamic";
+import { ChevronRight } from "lucide-react";
 import { ListingItem } from "@/lib/types";
 import ExploreFilterBar from "./explore/ExploreFilterBar";
 import ExploreListPanel from "./explore/ExploreListPanel";
@@ -23,6 +24,8 @@ interface ExploreClientProps {
   initialTier?: string;
 }
 
+const DEFAULT_MAP_CENTER: [number, number] = [-6.2368, 106.8087];
+
 export default function ExploreClient({
   initialListings,
   initialQuery = "",
@@ -32,9 +35,9 @@ export default function ExploreClient({
   const [searchQuery, setSearchQuery] = useState(initialQuery);
   const [selectedType, setSelectedType] = useState(initialType);
   const [selectedTier, setSelectedTier] = useState<string>(initialTier);
-  const [selectedListingId, setSelectedListingId] = useState<string | null>(
-    initialListings[0]?.id || null
-  );
+  const [isListOpen, setIsListOpen] = useState(true);
+  const [selectedListingId, setSelectedListingId] = useState<string | null>(null);
+  const [hoveredListingId, setHoveredListingId] = useState<string | null>(null);
   const [detailedListingId, setDetailedListingId] = useState<string | null>(null);
   const [mobileView, setMobileView] = useState<"list" | "map">("list");
 
@@ -64,14 +67,37 @@ export default function ExploreClient({
     setSelectedTier("");
   }, []);
 
-  const handleSelectListing = useCallback((id: string) => {
+  const handleMapClick = useCallback(() => {
+    setIsListOpen(false);
+    setSelectedListingId(null);
+    setHoveredListingId(null);
+  }, []);
+
+  const handleSelectListing = useCallback((id: string | null) => {
     setSelectedListingId(id);
+    setHoveredListingId(null);
+  }, []);
+
+  const handleHoverListing = useCallback((id: string | null) => {
+    setHoveredListingId(id);
   }, []);
 
   const handleViewDetail = useCallback((id: string) => {
     setDetailedListingId(id);
     setSelectedListingId(id);
+    setIsListOpen(true);
     setMobileView("list");
+  }, []);
+
+  const handleOpenList = useCallback(() => {
+    setIsListOpen(true);
+    setDetailedListingId(null);
+    setMobileView("list");
+  }, []);
+
+  const handleCloseList = useCallback(() => {
+    setIsListOpen(false);
+    setSelectedListingId(null);
   }, []);
 
   const handleBackToList = useCallback(() => {
@@ -102,41 +128,64 @@ export default function ExploreClient({
         onBackToList={handleBackToList}
       />
 
-      <div className="flex-1 flex overflow-hidden">
-        {detailedListing ? (
+      <div className="flex-1 flex overflow-hidden relative">
+        {/* Left Panel: Property List or Detailed View */}
+        {isListOpen && (
           <div
-            className={`w-full lg:w-[45%] h-full overflow-hidden transition-all ${
+            className={`w-full lg:w-[45%] h-full overflow-hidden transition-all duration-300 relative border-r border-[#E2E8F0] shrink-0 ${
               mobileView === "map" ? "hidden lg:block" : "block"
             }`}
           >
-            <ExploreDetailPanel
-              listing={detailedListing}
-              onBack={handleBackToList}
-            />
+            {detailedListing ? (
+              <ExploreDetailPanel
+                listing={detailedListing}
+                onBack={handleBackToList}
+              />
+            ) : (
+              <ExploreListPanel
+                listings={filteredListings}
+                selectedListingId={selectedListingId}
+                hoveredListingId={hoveredListingId}
+                onSelectListing={handleSelectListing}
+                onHoverListing={handleHoverListing}
+                onViewDetail={handleViewDetail}
+                onReset={handleReset}
+                onClosePanel={handleCloseList}
+                mobileView={mobileView}
+              />
+            )}
           </div>
-        ) : (
-          <ExploreListPanel
-            listings={filteredListings}
-            selectedListingId={selectedListingId}
-            onSelectListing={handleSelectListing}
-            onViewDetail={handleViewDetail}
-            onReset={handleReset}
-            mobileView={mobileView}
-          />
         )}
 
+        {/* Right Panel: Map */}
         <div
-          className={`w-full lg:w-[55%] h-full p-4 lg:pl-0 shrink-0 transition-all ${
-            mobileView === "list" ? "hidden lg:block" : "block"
-          }`}
+          className={`h-full p-4 shrink-0 transition-all duration-300 relative ${
+            isListOpen ? "w-full lg:w-[55%] lg:pl-0" : "w-full"
+          } ${mobileView === "list" ? (isListOpen ? "hidden lg:block" : "block") : "block"}`}
         >
+          {/* Circular Arrow Right Button when list is hidden */}
+          {!isListOpen && (
+            <button
+              type="button"
+              onClick={handleOpenList}
+              className="absolute top-7 left-7 z-[450] w-10 h-10 rounded-full bg-white hover:bg-slate-50 text-[#3D77EE] hover:text-[#2B55AB] border border-[#E2E8F0] shadow-md hover:shadow-lg flex items-center justify-center transition-all hover:scale-105 active:scale-95 cursor-pointer group"
+              title="Tampilkan Daftar Properti"
+              aria-label="Tampilkan Daftar Properti"
+            >
+              <ChevronRight className="w-5 h-5 stroke-[2.5] group-hover:translate-x-0.5 transition-transform" />
+            </button>
+          )}
+
           <div className="w-full h-full">
             <InteractiveMap
               listings={filteredListings}
               selectedListingId={selectedListingId}
+              hoveredListingId={hoveredListingId}
               onSelectListing={handleSelectListing}
               onViewDetail={handleViewDetail}
-              center={[-6.2368, 106.8087]}
+              onMapClick={handleMapClick}
+              isListOpen={isListOpen}
+              center={DEFAULT_MAP_CENTER}
               zoom={12}
             />
           </div>

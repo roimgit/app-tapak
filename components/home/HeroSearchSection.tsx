@@ -1,18 +1,13 @@
 import React from "react";
 import Link from "next/link";
-import { Search, MapPin, Building2, ShieldCheck } from "lucide-react";
+import { Search, MapPin, Building2 } from "lucide-react";
 
 export default function HeroSearchSection() {
   return (
-    <section className="relative pt-8 pb-10 sm:pt-12 sm:pb-12 overflow-hidden">
+    <section className="relative pt-3 pb-8 sm:pt-4 sm:pb-10 overflow-hidden">
       <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full max-w-7xl h-72 bg-gradient-to-b from-blue-100/60 to-transparent pointer-events-none rounded-full blur-3xl -z-10" />
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-        <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-blue-50 border border-blue-200 text-[#3D77EE] text-xs font-semibold mb-6 shadow-xs">
-          <ShieldCheck className="w-4 h-4 text-[#3D77EE]" />
-          <span>Standar Baru Verifikasi Properti Tanpa Biaya Tersembunyi</span>
-        </div>
-
         <h1 className="sr-only">Pencarian Hunian Terverifikasi Tapak.</h1>
 
         <div className="mt-4 max-w-4xl mx-auto bg-white p-3 sm:p-4 rounded-[18px] shadow-xl shadow-blue-500/10 border border-slate-200">
