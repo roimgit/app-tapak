@@ -14,13 +14,22 @@ const SELECTIVE_LISTING_FIELDS = {
   maintenance_fee: true,
   utility_estimate: true,
   verification_tier: true,
+  transaction_type: true,
+  certificate_type: true,
+  price_status: true,
+  payment_methods: true,
   property_type: true,
   bedrooms: true,
   bathrooms: true,
   area_sqm: true,
+  land_area_sqm: true,
   address: true,
   district: true,
   city: true,
+  specs: true,
+  is_private: true,
+  co_broking_enabled: true,
+  co_broking_commission: true,
   latitude: true,
   longitude: true,
   images: true,
@@ -51,8 +60,10 @@ export async function getListings(
             deposit::float as deposit, 
             maintenance_fee::float as maintenance_fee, 
             utility_estimate::float as utility_estimate,
-            verification_tier, property_type, bedrooms, bathrooms, 
-            area_sqm, address, district, city, 
+            verification_tier, transaction_type, certificate_type, price_status, payment_methods,
+            property_type, bedrooms, bathrooms, 
+            area_sqm, land_area_sqm, address, district, city, 
+            specs, is_private, co_broking_enabled, co_broking_commission::float as co_broking_commission,
             latitude, longitude, images, amenities, 
             is_available, agent_name, agent_phone, created_at, updated_at
           FROM listings
@@ -70,8 +81,17 @@ export async function getListings(
         const dbListings = await prisma.listing.findMany({
           where: {
             is_available: true,
+            ...(filters?.query && {
+              OR: [
+                { title: { contains: filters.query, mode: "insensitive" } },
+                { city: { contains: filters.query, mode: "insensitive" } },
+                { district: { contains: filters.query, mode: "insensitive" } },
+                { address: { contains: filters.query, mode: "insensitive" } },
+              ],
+            }),
             ...(filters?.city && { city: { contains: filters.city, mode: "insensitive" } }),
             ...(filters?.property_type && { property_type: filters.property_type }),
+            ...(filters?.transaction_type && { transaction_type: filters.transaction_type }),
             ...(filters?.verification_tier && { verification_tier: filters.verification_tier }),
             ...(filters?.bedrooms && { bedrooms: { gte: filters.bedrooms } }),
             ...(filters?.max_price && { price: { lte: filters.max_price } }),
@@ -89,8 +109,14 @@ export async function getListings(
             deposit: l.deposit ? Number(l.deposit) : 0,
             maintenance_fee: l.maintenance_fee ? Number(l.maintenance_fee) : 0,
             utility_estimate: l.utility_estimate ? Number(l.utility_estimate) : 0,
+            co_broking_commission: l.co_broking_commission ? Number(l.co_broking_commission) : undefined,
             property_type: l.property_type as ListingItem["property_type"],
             verification_tier: l.verification_tier as ListingItem["verification_tier"],
+            transaction_type: l.transaction_type as ListingItem["transaction_type"],
+            certificate_type: l.certificate_type as ListingItem["certificate_type"],
+            price_status: l.price_status as ListingItem["price_status"],
+            payment_methods: (l.payment_methods || []) as ListingItem["payment_methods"],
+            specs: (l.specs || undefined) as ListingItem["specs"],
           }));
         }
       }
@@ -111,7 +137,8 @@ function filterMockListings(filters?: ListingFilters, bounds?: BoundsFilter): Li
       (item) =>
         item.title.toLowerCase().includes(q) ||
         item.city.toLowerCase().includes(q) ||
-        item.district.toLowerCase().includes(q)
+        item.district.toLowerCase().includes(q) ||
+        (item.address && item.address.toLowerCase().includes(q))
     );
   }
 
@@ -125,6 +152,10 @@ function filterMockListings(filters?: ListingFilters, bounds?: BoundsFilter): Li
     results = results.filter(
       (item) => item.property_type.toLowerCase() === filters.property_type!.toLowerCase()
     );
+  }
+
+  if (filters?.transaction_type) {
+    results = results.filter((item) => item.transaction_type === filters.transaction_type);
   }
 
   if (filters?.verification_tier) {
@@ -176,8 +207,14 @@ export async function getListingBySlug(slug: string): Promise<ListingItem | null
           deposit: item.deposit ? Number(item.deposit) : 0,
           maintenance_fee: item.maintenance_fee ? Number(item.maintenance_fee) : 0,
           utility_estimate: item.utility_estimate ? Number(item.utility_estimate) : 0,
+          co_broking_commission: item.co_broking_commission ? Number(item.co_broking_commission) : undefined,
           property_type: item.property_type as ListingItem["property_type"],
           verification_tier: item.verification_tier as ListingItem["verification_tier"],
+          transaction_type: item.transaction_type as ListingItem["transaction_type"],
+          certificate_type: item.certificate_type as ListingItem["certificate_type"],
+          price_status: item.price_status as ListingItem["price_status"],
+          payment_methods: (item.payment_methods || []) as ListingItem["payment_methods"],
+          specs: (item.specs || undefined) as ListingItem["specs"],
         };
       }
     } catch {

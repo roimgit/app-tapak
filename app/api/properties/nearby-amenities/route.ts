@@ -51,15 +51,15 @@ function calculateDuration(distanceMeter: number): string {
 function getCategoryMetadata(category: AmenityPOI["category"]) {
   switch (category) {
     case "TRANSPORT":
-      return { label: "Transportasi Publik", icon: "🚆", color: "#3D77EE" };
+      return { label: "Transportasi Publik", icon: "TRANSPORT", color: "#3D77EE" };
     case "HEALTH":
-      return { label: "Kesehatan & Medis", icon: "🏥", color: "#0EA5E9" };
+      return { label: "Kesehatan & Medis", icon: "HEALTH", color: "#0EA5E9" };
     case "EDUCATION":
-      return { label: "Pendidikan", icon: "🎓", color: "#2B55AB" };
+      return { label: "Pendidikan", icon: "EDUCATION", color: "#2B55AB" };
     case "WORSHIP":
-      return { label: "Tempat Ibadah", icon: "🕌", color: "#475569" };
+      return { label: "Tempat Ibadah", icon: "WORSHIP", color: "#475569" };
     case "SHOPPING":
-      return { label: "Belanja & Ritel", icon: "🛍️", color: "#334155" };
+      return { label: "Belanja & Ritel", icon: "SHOPPING", color: "#334155" };
   }
 }
 

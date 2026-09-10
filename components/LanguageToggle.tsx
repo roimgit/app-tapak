@@ -16,7 +16,7 @@ export default function LanguageToggle({ className = "" }: { className?: string 
     <div
       role="group"
       aria-label="Pilihan Bahasa / Language Switcher"
-      className={`inline-flex items-center p-1 bg-white border border-slate-200 hover:border-[#3D77EE]/40 rounded-full shadow-2xs select-none transition-all ${className}`}
+      className={`inline-flex items-center p-1 bg-slate-100/80 rounded-full select-none transition-all ${className}`}
     >
       {OPTIONS.map((opt) => {
         const isActive = language === opt.code;

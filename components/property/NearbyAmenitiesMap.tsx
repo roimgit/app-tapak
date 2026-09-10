@@ -112,13 +112,31 @@ export default function NearbyAmenitiesMap({
         { className: "tapak-custom-popup" }
       );
 
+function getCategorySvg(category: string): string {
+  switch (category.toUpperCase()) {
+    case "TRANSPORT":
+      return `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 15V7a4 4 0 0 1 4-4h8a4 4 0 0 1 4 4v8"/><path d="m4 11 16 0"/><path d="M8 19l-2 3"/><path d="M16 19l2 3"/><circle cx="9" cy="15" r="1"/><circle cx="15" cy="15" r="1"/></svg>`;
+    case "HEALTH":
+      return `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v20"/><path d="M2 12h20"/></svg>`;
+    case "EDUCATION":
+      return `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21.42 10.922a1 1 0 0 0-.019-1.838L12.83 5.18a2 2 0 0 0-1.66 0L2.6 9.08a1 1 0 0 0 0 1.832l8.57 3.908a2 2 0 0 0 1.66 0z"/><path d="M22 10v6"/><path d="M6 12.5V16a6 3 0 0 0 12 0v-3.5"/></svg>`;
+    case "WORSHIP":
+      return `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 22V4a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v18Z"/><path d="M6 12H4a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h2"/><path d="M18 9h2a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2h-2"/></svg>`;
+    case "SHOPPING":
+      return `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z"/><path d="M3 6h18"/><path d="M16 10a4 4 0 0 1-8 0"/></svg>`;
+    default:
+      return `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/></svg>`;
+  }
+}
+
       // Render POI markers
       const markerList: Array<{ marker: L.Marker; poi: AmenityPOI }> = [];
 
       amenities.forEach((poi) => {
+        const svgIcon = getCategorySvg(poi.category);
         const poiPinHtml = `
-          <div style="width: 28px; height: 28px; background: ${poi.color}; border: 2px solid #FFFFFF; border-radius: 50%; box-shadow: 0 2px 4px rgba(0,0,0,0.12); display: flex; align-items: center; justify-content: center; font-size: 12px; cursor: pointer;">
-            ${poi.icon}
+          <div style="width: 28px; height: 28px; background: ${poi.color}; border: 2px solid #FFFFFF; border-radius: 50%; box-shadow: 0 2px 5px rgba(0,0,0,0.18); display: flex; align-items: center; justify-content: center; cursor: pointer;">
+            ${svgIcon}
           </div>
         `;
         const poiIcon = L.divIcon({
@@ -138,7 +156,7 @@ export default function NearbyAmenitiesMap({
               <span style="font-weight: 800; font-size: 11px; color: #111827; background: #F1F5F9; padding: 1px 6px; border-radius: 4px;">${poi.distanceFormatted}</span>
             </div>
             <h4 style="font-weight: 700; font-size: 13px; color: #0F172A; margin: 4px 0 2px 0;">${poi.name}</h4>
-            <p style="font-size: 11px; color: #3D77EE; font-weight: 600; margin: 0;">🚶 ${poi.durationFormatted}</p>
+            <p style="font-size: 11px; color: #3D77EE; font-weight: 600; margin: 0;">Jarak: ${poi.durationFormatted}</p>
           </div>
         `,
           { className: "tapak-custom-popup" }

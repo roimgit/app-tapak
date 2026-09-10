@@ -25,6 +25,88 @@
   }
 }
 
+/* ==========================================================================
+   [SAKLAR TEMA: SUBTLE / MICRO ROUNDED (TEGAS & CASUAL)]
+   Mengatur sudut melengkung tipis dan proporsional (4px - 8px).
+   Memberikan estetika modern, kokoh, presisi, namun tetap casual dan ramah.
+
+   - Kartu & Banner: 8px (sebelumnya 18px / 24px)
+   - Tombol, Input & Dropdown: 6px (sebelumnya 10px)
+   - Tag, Badge & Indikator: 5px (sebelumnya kapsul rounded-full)
+   - Modal Pop-up: 10px (sebelumnya 24px)
+
+   CARA MENGEMBALIKAN KE ROUNDED BAWAAN ASLI KAPAN SAJA:
+   Cukup hapus atau beri tanda komentar pada blok aturan di bawah ini.
+   ========================================================================== */
+:root {
+  --radius-btn: 6px !important;
+  --radius-card: 8px !important;
+  --radius-modal: 10px !important;
+}
+
+/* 1. Modal, Drawer, Hero Box besar -> 10px */
+[class*="rounded-[24px]"],
+[class*="rounded-3xl"] {
+  border-radius: 10px !important;
+}
+
+[class*="rounded-r-[24px]"] {
+  border-top-right-radius: 10px !important;
+  border-bottom-right-radius: 10px !important;
+}
+
+/* 2. Kartu Properti, Artikel, Banner Billboard, Panel -> 8px */
+[class*="rounded-[18px]"],
+[class*="rounded-[16px]"],
+[class*="rounded-[14px]"],
+[class*="rounded-2xl"],
+[class*="rounded-xl"] {
+  border-radius: 8px !important;
+}
+
+[class*="rounded-r-[14px]"] {
+  border-top-right-radius: 8px !important;
+  border-bottom-right-radius: 8px !important;
+}
+
+/* 3. Tombol CTA, Form Input, Dropdown, Container Sedang -> 6px */
+[class*="rounded-[10px]"],
+[class*="rounded-[8px]"],
+[class*="rounded-lg"],
+[class*="rounded-md"] {
+  border-radius: 6px !important;
+}
+
+[class*="rounded-l-[10px]"] {
+  border-top-left-radius: 6px !important;
+  border-bottom-left-radius: 6px !important;
+}
+
+[class*="rounded-r-[10px]"] {
+  border-top-right-radius: 6px !important;
+  border-bottom-right-radius: 6px !important;
+}
+
+/* 4. Badge, Tag, Label, dan Filter Pills -> 5px (soft modern badge) */
+[class*="rounded-full"]:not(.tapak-pin):not(.tapak-cluster-pin):not(.tapak-marker-photo-circle):not([class*="animate-spin"]):not([class*="spinner"]):not(.tapak-circle):not([class*="w-1.5"]):not([class*="w-2"]):not([class*="w-2.5"]):not([class*="w-3"]):not([class*="w-4"]):not([class*="w-5"]):not([class*="w-6"]):not([class*="w-7"]):not([class*="w-8"]):not([class*="w-9"]):not([class*="w-10"]):not([class*="w-11"]):not([class*="w-12"]):not([class*="w-16"]) {
+  border-radius: 5px !important;
+}
+
+/* 5. Komponen Pop-up Peta & Leaflet */
+.tapak-custom-popup .leaflet-popup-content-wrapper,
+.tapak-explore-popup-container .leaflet-popup-content-wrapper {
+  border-radius: 8px !important;
+}
+
+.tapak-marker-header-pill {
+  border-radius: 4px 4px 0 0 !important;
+}
+
+.tapak-marker-body-card {
+  border-radius: 0 0 4px 4px !important;
+}
+/* ========================================================================== */
+
 /* Brand Wordmark */
 .brand-wordmark {
   font-family: Arial, "Helvetica Neue", sans-serif;

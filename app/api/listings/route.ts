@@ -2,8 +2,9 @@ import { NextRequest, NextResponse } from "next/server";
 import { getListings } from "@/lib/listings";
 import { prisma } from "@/lib/prisma";
 import { revalidatePath } from "next/cache";
-import { BoundsFilter, ListingFilters, VerificationTier } from "@/lib/types";
+import { BoundsFilter, ListingFilters, TransactionType, VerificationTier } from "@/lib/types";
 import { AmenityCategory } from "@prisma/client";
+
 
 // GET: Ambil daftar listing dengan filter & spatial bounds
 export async function GET(request: NextRequest) {
@@ -13,6 +14,7 @@ export async function GET(request: NextRequest) {
   const property_type = searchParams.get("type") || undefined;
   const city = searchParams.get("city") || undefined;
   const verification_tier = (searchParams.get("tier") as VerificationTier) || undefined;
+  const transaction_type = (searchParams.get("transaction_type") as TransactionType) || undefined;
   const max_price = searchParams.get("max_price") ? Number(searchParams.get("max_price")) : undefined;
   const min_price = searchParams.get("min_price") ? Number(searchParams.get("min_price")) : undefined;
 
@@ -34,6 +36,7 @@ export async function GET(request: NextRequest) {
   const filters: ListingFilters = {
     query,
     property_type,
+    transaction_type,
     city,
     verification_tier,
     max_price,
@@ -56,10 +59,15 @@ export async function POST(request: NextRequest) {
       maintenance_fee,
       utility_estimate,
       verification_tier = "SILVER",
+      transaction_type = "DISEWAKAN",
+      certificate_type,
+      price_status,
+      payment_methods = [],
       property_type,
       bedrooms = 1,
       bathrooms = 1,
       area_sqm = 36,
+      land_area_sqm,
       address,
       district,
       city,
@@ -70,6 +78,10 @@ export async function POST(request: NextRequest) {
       agent_name = "Mitra Pemilik Tapak",
       agent_phone = "6281234567890",
       nearby_amenities = [],
+      specs,
+      is_private = false,
+      co_broking_enabled = false,
+      co_broking_commission,
     } = body;
 
     // Validasi field utama
@@ -114,11 +126,16 @@ export async function POST(request: NextRequest) {
         deposit: deposit ? Number(deposit) : null,
         maintenance_fee: maintenance_fee ? Number(maintenance_fee) : null,
         utility_estimate: utility_estimate ? Number(utility_estimate) : null,
-        verification_tier: (verification_tier as VerificationTier) || "SILVER",
+        verification_tier: (verification_tier as any) || "SILVER",
+        transaction_type: (transaction_type as any) || "DISEWAKAN",
+        certificate_type: certificate_type ? (certificate_type as any) : null,
+        price_status: price_status ? (price_status as any) : null,
+        payment_methods: Array.isArray(payment_methods) ? payment_methods : [],
         property_type: String(property_type),
         bedrooms: Math.max(1, Number(bedrooms) || 1),
         bathrooms: Math.max(1, Number(bathrooms) || 1),
         area_sqm: Number(area_sqm) || 36,
+        land_area_sqm: land_area_sqm ? Number(land_area_sqm) : null,
         address: String(address).trim(),
         district: String(district).trim(),
         city: String(city).trim(),
@@ -128,6 +145,10 @@ export async function POST(request: NextRequest) {
           "https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?w=800&auto=format&fit=crop&q=80"
         ],
         amenities: Array.isArray(amenities) ? amenities : [],
+        specs: specs ?? undefined,
+        is_private: Boolean(is_private),
+        co_broking_enabled: Boolean(co_broking_enabled),
+        co_broking_commission: co_broking_commission ? Number(co_broking_commission) : null,
         is_available: true,
         agent_name: String(agent_name).trim(),
         agent_phone: String(agent_phone).trim(),

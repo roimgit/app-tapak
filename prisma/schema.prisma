@@ -18,43 +18,80 @@ enum VerificationTier {
   GOLD
 }
 
+enum TransactionType {
+  DISEWAKAN
+  DIJUAL
+}
+
+enum CertificateType {
+  SHM
+  SHGB
+  HGB
+  STRATA_TITLE
+  GIRIK
+  BELUM_BERSERTIFIKAT
+}
+
+enum PriceStatus {
+  NEGO
+  NETT
+}
+
 model Listing {
-  id                String           @id @default(cuid())
-  title             String
-  slug              String           @unique
-  description       String
-  price             Decimal          @db.Decimal(15, 2)
-  deposit           Decimal?         @db.Decimal(15, 2)
-  maintenance_fee   Decimal?         @db.Decimal(15, 2)
-  utility_estimate  Decimal?         @db.Decimal(15, 2)
-  verification_tier VerificationTier @default(NONE)
+  id                   String           @id @default(cuid())
+  title                String
+  slug                 String           @unique
+  description          String
+  price                Decimal          @db.Decimal(15, 2)
+  deposit              Decimal?         @db.Decimal(15, 2)
+  maintenance_fee      Decimal?         @db.Decimal(15, 2)
+  utility_estimate     Decimal?         @db.Decimal(15, 2)
+  verification_tier    VerificationTier @default(NONE)
 
-  property_type     String           // Apartemen, Rumah, Kost, Ruko, Vila
-  bedrooms          Int              @default(1)
-  bathrooms         Int              @default(1)
-  area_sqm          Float            // Luas dalam m2
-  address           String
-  district          String           // Kecamatan/Area (e.g. SCBD, BSD, Setiabudi)
-  city              String           // Jakarta Selatan, Tangerang Selatan, dll.
+  // Jenis Transaksi: Sewa atau Jual-Beli
+  transaction_type     TransactionType  @default(DISEWAKAN)
 
-  latitude          Float
-  longitude         Float
-  location          Unsupported("geometry(Point, 4326)")?
+  // Legalitas & Status Harga (untuk listing DIJUAL)
+  certificate_type     CertificateType?
+  price_status         PriceStatus?     // NEGO atau NETT
+  payment_methods      String[]         // BISA_KPR, CASH_KERAS, CASH_BERTAHAP
 
-  images            String[]
-  amenities         String[]
-  is_available      Boolean          @default(true)
+  property_type        String           // Apartemen, Rumah, Kost, Ruko, Vila
+  bedrooms             Int              @default(1)
+  bathrooms            Int              @default(1)
+  area_sqm             Float            // Luas Bangunan (LB) — kolom utama
+  land_area_sqm        Float?           // Luas Tanah (LT)
+  address              String
+  district             String           // Kecamatan/Area (e.g. SCBD, BSD, Setiabudi)
+  city                 String           // Jakarta Selatan, Tangerang Selatan, dll.
 
-  nearby_amenities  NearbyAmenity[]
+  // Spesifikasi teknis tambahan (garasi, listrik, arah hadap, dll.) — JSON fleksibel
+  specs                Json?
 
-  agent_name        String           @default("Konsultan Tapak")
-  agent_phone       String           @default("6281234567890")
+  // Mode Privasi & Co-Broking
+  is_private           Boolean          @default(false)
+  co_broking_enabled   Boolean          @default(false)
+  co_broking_commission Float?
 
-  created_at        DateTime         @default(now())
-  updated_at        DateTime         @updatedAt
+  latitude             Float
+  longitude            Float
+  location             Unsupported("geometry(Point, 4326)")?
+
+  images               String[]
+  amenities            String[]
+  is_available         Boolean          @default(true)
+
+  nearby_amenities     NearbyAmenity[]
+
+  agent_name           String           @default("Konsultan Tapak")
+  agent_phone          String           @default("6281234567890")
+
+  created_at           DateTime         @default(now())
+  updated_at           DateTime         @updatedAt
 
   @@index([city, district])
   @@index([verification_tier])
+  @@index([transaction_type])
   @@map("listings")
 }
 

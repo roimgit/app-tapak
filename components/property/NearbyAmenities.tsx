@@ -2,9 +2,22 @@
 
 import React, { useState, useEffect, useMemo } from "react";
 import dynamic from "next/dynamic";
-import { CheckCircle2, RefreshCw, ArrowRight, Info } from "lucide-react";
+import {
+  CheckCircle2,
+  RefreshCw,
+  ArrowRight,
+  Info,
+  Train,
+  Stethoscope,
+  GraduationCap,
+  Building2,
+  ShoppingBag,
+  Footprints,
+  School,
+} from "lucide-react";
 import type { AmenityPOI } from "@/app/api/properties/nearby-amenities/route";
 import NearbySchoolDistrict from "./NearbySchoolDistrict";
+import { getNearbyAmenityIcon } from "@/lib/amenity-icons";
 
 // Dynamic import Leaflet Map to avoid SSR issues
 const NearbyAmenitiesMap = dynamic(
@@ -152,7 +165,7 @@ export default function NearbyAmenities({
 
           <div className="flex items-center gap-2.5 bg-slate-50 border border-[#E2E8F0] px-3 py-1.5 rounded-xl text-xs">
             <div className="w-7 h-7 rounded-lg bg-blue-50 text-[#3D77EE] flex items-center justify-center font-bold text-sm">
-              🚶
+              <Footprints className="w-4 h-4 text-[#3D77EE]" />
             </div>
             <div>
               <p className="text-[10px] text-slate-500 font-medium">Akses Terdekat</p>
@@ -205,7 +218,8 @@ export default function NearbyAmenities({
                 : "bg-white border border-slate-200 text-[#111827] hover:border-[#3D77EE] hover:text-[#3D77EE]"
             }`}
           >
-            <span>🚆 Transportasi</span>
+            <Train className="w-3.5 h-3.5 shrink-0" />
+            <span>Transportasi</span>
             <span className="bg-slate-100 text-slate-600 text-[10px] px-1.5 py-0.2 rounded-full">
               {categoryCounts.transport}
             </span>
@@ -223,7 +237,8 @@ export default function NearbyAmenities({
                 : "bg-white border border-slate-200 text-[#111827] hover:border-[#3D77EE] hover:text-[#3D77EE]"
             }`}
           >
-            <span>🏥 Kesehatan</span>
+            <Stethoscope className="w-3.5 h-3.5 shrink-0" />
+            <span>Kesehatan</span>
             <span className="bg-slate-100 text-slate-600 text-[10px] px-1.5 py-0.2 rounded-full">
               {categoryCounts.health}
             </span>
@@ -241,7 +256,8 @@ export default function NearbyAmenities({
                 : "bg-white border border-slate-200 text-[#111827] hover:border-[#3D77EE] hover:text-[#3D77EE]"
             }`}
           >
-            <span>🎓 Pendidikan</span>
+            <GraduationCap className="w-3.5 h-3.5 shrink-0" />
+            <span>Pendidikan</span>
             <span className="bg-slate-100 text-slate-600 text-[10px] px-1.5 py-0.2 rounded-full">
               {categoryCounts.education}
             </span>
@@ -259,7 +275,8 @@ export default function NearbyAmenities({
                 : "bg-white border border-slate-200 text-[#111827] hover:border-[#3D77EE] hover:text-[#3D77EE]"
             }`}
           >
-            <span>🕌 Tempat Ibadah</span>
+            <Building2 className="w-3.5 h-3.5 shrink-0" />
+            <span>Tempat Ibadah</span>
             <span className="bg-slate-100 text-slate-600 text-[10px] px-1.5 py-0.2 rounded-full">
               {categoryCounts.worship}
             </span>
@@ -277,7 +294,8 @@ export default function NearbyAmenities({
                 : "bg-white border border-slate-200 text-[#111827] hover:border-[#3D77EE] hover:text-[#3D77EE]"
             }`}
           >
-            <span>🛍️ Belanja</span>
+            <ShoppingBag className="w-3.5 h-3.5 shrink-0" />
+            <span>Belanja</span>
             <span className="bg-slate-100 text-slate-600 text-[10px] px-1.5 py-0.2 rounded-full">
               {categoryCounts.shopping}
             </span>
@@ -293,7 +311,8 @@ export default function NearbyAmenities({
                 : "bg-white border border-[#E2E8F0] text-[#111827] hover:border-[#3D77EE] hover:text-[#3D77EE]"
             }`}
           >
-            <span>🏫 Distrik Sekolah™</span>
+            <School className="w-3.5 h-3.5 shrink-0" />
+            <span>Distrik Sekolah™</span>
           </button>
         </div>
 
@@ -365,13 +384,14 @@ export default function NearbyAmenities({
                   <div className="flex items-start justify-between gap-3">
                     <div className="flex items-start gap-3">
                       <div
-                        className="w-10 h-10 rounded-xl flex items-center justify-center text-lg shrink-0 border transition-transform group-hover:scale-105"
+                        className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0 border transition-transform group-hover:scale-105"
                         style={{
                           backgroundColor: `${poi.color}15`,
                           borderColor: `${poi.color}30`,
+                          color: poi.color,
                         }}
                       >
-                        {poi.icon}
+                        {getNearbyAmenityIcon(poi.category, "w-5 h-5")}
                       </div>
 
                       <div>
@@ -409,8 +429,9 @@ export default function NearbyAmenities({
                   </div>
 
                   <div className="pt-2.5 border-t border-[#E2E8F0] flex items-center justify-between text-xs">
-                    <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-[8px] bg-blue-50 text-[#3D77EE] font-bold">
-                      🚶 {poi.durationFormatted}
+                    <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-[8px] bg-blue-50 text-[#3D77EE] font-bold">
+                      <Footprints className="w-3.5 h-3.5" />
+                      <span>{poi.durationFormatted}</span>
                     </span>
 
                     <button

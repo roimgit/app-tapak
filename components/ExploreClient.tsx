@@ -1,7 +1,8 @@
 "use client";
 
-import React, { useState, useMemo, useCallback } from "react";
+import React, { useState, useMemo, useCallback, useEffect } from "react";
 import dynamic from "next/dynamic";
+import { useRouter } from "next/navigation";
 import { ChevronRight } from "lucide-react";
 import { ListingItem } from "@/lib/types";
 import ExploreFilterBar from "./explore/ExploreFilterBar";
@@ -22,6 +23,9 @@ interface ExploreClientProps {
   initialQuery?: string;
   initialType?: string;
   initialTier?: string;
+  initialTransactionType?: string;
+  initialSelectedSlug?: string;
+  initialSelectedId?: string;
 }
 
 const DEFAULT_MAP_CENTER: [number, number] = [-6.2368, 106.8087];
@@ -31,15 +35,51 @@ export default function ExploreClient({
   initialQuery = "",
   initialType = "",
   initialTier = "",
+  initialTransactionType = "",
+  initialSelectedSlug = "",
+  initialSelectedId = "",
 }: ExploreClientProps) {
+  const router = useRouter();
+
+  const initialMatchedListing = useMemo(() => {
+    if (initialSelectedSlug) {
+      return initialListings.find((l) => l.slug === initialSelectedSlug) || null;
+    }
+    if (initialSelectedId) {
+      return initialListings.find((l) => l.id === initialSelectedId) || null;
+    }
+    return null;
+  }, [initialListings, initialSelectedSlug, initialSelectedId]);
+
   const [searchQuery, setSearchQuery] = useState(initialQuery);
   const [selectedType, setSelectedType] = useState(initialType);
   const [selectedTier, setSelectedTier] = useState<string>(initialTier);
+  const [selectedTransactionType, setSelectedTransactionType] = useState<string>(initialTransactionType);
   const [isListOpen, setIsListOpen] = useState(true);
-  const [selectedListingId, setSelectedListingId] = useState<string | null>(null);
+  const [selectedListingId, setSelectedListingId] = useState<string | null>(
+    initialMatchedListing ? initialMatchedListing.id : null
+  );
   const [hoveredListingId, setHoveredListingId] = useState<string | null>(null);
-  const [detailedListingId, setDetailedListingId] = useState<string | null>(null);
+  const [detailedListingId, setDetailedListingId] = useState<string | null>(
+    initialMatchedListing ? initialMatchedListing.id : null
+  );
   const [mobileView, setMobileView] = useState<"list" | "map">("list");
+
+  useEffect(() => {
+    setSearchQuery(initialQuery);
+  }, [initialQuery]);
+
+  useEffect(() => {
+    setSelectedType(initialType);
+  }, [initialType]);
+
+  useEffect(() => {
+    setSelectedTier(initialTier);
+  }, [initialTier]);
+
+  useEffect(() => {
+    setSelectedTransactionType(initialTransactionType);
+  }, [initialTransactionType]);
 
   const filteredListings = useMemo(() => {
     return initialListings.filter((item) => {
@@ -48,8 +88,12 @@ export default function ExploreClient({
         const match =
           item.title.toLowerCase().includes(q) ||
           item.city.toLowerCase().includes(q) ||
-          item.district.toLowerCase().includes(q);
+          item.district.toLowerCase().includes(q) ||
+          (item.address && item.address.toLowerCase().includes(q));
         if (!match) return false;
+      }
+      if (selectedTransactionType && selectedTransactionType !== "Semua") {
+        if (item.transaction_type !== selectedTransactionType) return false;
       }
       if (selectedType && selectedType !== "Semua") {
         if (item.property_type.toLowerCase() !== selectedType.toLowerCase()) return false;
@@ -59,13 +103,18 @@ export default function ExploreClient({
       }
       return true;
     });
-  }, [initialListings, searchQuery, selectedType, selectedTier]);
+  }, [initialListings, searchQuery, selectedTransactionType, selectedType, selectedTier]);
 
   const handleReset = useCallback(() => {
     setSearchQuery("");
     setSelectedType("");
     setSelectedTier("");
-  }, []);
+    setSelectedTransactionType("");
+    setSelectedListingId(null);
+    setHoveredListingId(null);
+    setDetailedListingId(null);
+    router.replace("/explore", { scroll: false });
+  }, [router]);
 
   const handleMapClick = useCallback(() => {
     setIsListOpen(false);
@@ -109,13 +158,29 @@ export default function ExploreClient({
     return initialListings.find((item) => item.id === detailedListingId) || null;
   }, [detailedListingId, initialListings]);
 
-  const hasActiveFilters = Boolean(searchQuery || selectedType || selectedTier);
+  const hasActiveFilters = Boolean(
+    searchQuery || selectedTransactionType || selectedType || selectedTier
+  );
+
+  const mapCenter = useMemo<[number, number]>(() => {
+    if (detailedListing) {
+      return [detailedListing.latitude, detailedListing.longitude];
+    }
+    if (initialMatchedListing) {
+      return [initialMatchedListing.latitude, initialMatchedListing.longitude];
+    }
+    return DEFAULT_MAP_CENTER;
+  }, [detailedListing, initialMatchedListing]);
+
+  const mapZoom = detailedListing || initialMatchedListing ? 14 : 12;
 
   return (
     <div className="flex flex-col h-[calc(100vh-80px)] overflow-hidden bg-[#F3F6FB]">
       <ExploreFilterBar
         searchQuery={searchQuery}
         setSearchQuery={setSearchQuery}
+        selectedTransactionType={selectedTransactionType}
+        setSelectedTransactionType={setSelectedTransactionType}
         selectedType={selectedType}
         setSelectedType={setSelectedType}
         selectedTier={selectedTier}
@@ -132,7 +197,7 @@ export default function ExploreClient({
         {/* Left Panel: Property List or Detailed View */}
         {isListOpen && (
           <div
-            className={`w-full lg:w-[45%] h-full overflow-hidden transition-all duration-300 relative border-r border-[#E2E8F0] shrink-0 ${
+            className={`w-full lg:w-[400px] xl:w-[430px] h-full overflow-hidden transition-all duration-300 relative border-r border-[#E2E8F0] shrink-0 bg-white ${
               mobileView === "map" ? "hidden lg:block" : "block"
             }`}
           >
@@ -159,8 +224,8 @@ export default function ExploreClient({
 
         {/* Right Panel: Map */}
         <div
-          className={`h-full p-4 shrink-0 transition-all duration-300 relative ${
-            isListOpen ? "w-full lg:w-[55%] lg:pl-0" : "w-full"
+          className={`h-full p-2.5 sm:p-3.5 shrink-0 transition-all duration-300 relative ${
+            isListOpen ? "w-full lg:flex-1" : "w-full"
           } ${mobileView === "list" ? (isListOpen ? "hidden lg:block" : "block") : "block"}`}
         >
           {/* Circular Arrow Right Button when list is hidden */}
@@ -185,8 +250,8 @@ export default function ExploreClient({
               onViewDetail={handleViewDetail}
               onMapClick={handleMapClick}
               isListOpen={isListOpen}
-              center={DEFAULT_MAP_CENTER}
-              zoom={12}
+              center={mapCenter}
+              zoom={mapZoom}
             />
           </div>
         </div>

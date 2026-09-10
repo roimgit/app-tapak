@@ -11,7 +11,7 @@ import FeaturedSection from "@/components/home/FeaturedSection";
 import PillarsSection from "@/components/home/PillarsSection";
 import { getListings, getCategoryCounts } from "@/lib/listings";
 
-export const dynamic = "force-dynamic";
+export const revalidate = 3600;
 
 export default async function HomePage() {
   const [listings, categoryCounts] = await Promise.all([

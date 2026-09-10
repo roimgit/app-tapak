@@ -6,6 +6,8 @@ import { Search, RotateCcw, ListFilter, Map as MapIcon, ArrowLeft } from "lucide
 interface ExploreFilterBarProps {
   searchQuery: string;
   setSearchQuery: (v: string) => void;
+  selectedTransactionType: string;
+  setSelectedTransactionType: (v: string) => void;
   selectedType: string;
   setSelectedType: (v: string) => void;
   selectedTier: string;
@@ -21,6 +23,8 @@ interface ExploreFilterBarProps {
 export default function ExploreFilterBar({
   searchQuery,
   setSearchQuery,
+  selectedTransactionType,
+  setSelectedTransactionType,
   selectedType,
   setSelectedType,
   selectedTier,
@@ -61,6 +65,16 @@ export default function ExploreFilterBar({
         </div>
 
         <div className="flex items-center flex-wrap gap-2 text-xs">
+          <select
+            value={selectedTransactionType}
+            onChange={(e) => setSelectedTransactionType(e.target.value)}
+            className="px-3 py-2 bg-slate-50 border border-[#E2E8F0] rounded-[10px] font-medium text-[#111827] focus:outline-none cursor-pointer"
+          >
+            <option value="">Semua Transaksi</option>
+            <option value="DISEWAKAN">Disewakan</option>
+            <option value="DIJUAL">Dijual</option>
+          </select>
+
           <select
             value={selectedType}
             onChange={(e) => setSelectedType(e.target.value)}

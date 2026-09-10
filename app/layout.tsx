@@ -33,14 +33,6 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="id" className={`${inter.variable} ${poppins.variable}`}>
-      <head>
-        <link
-          rel="stylesheet"
-          href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
-          integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY="
-          crossOrigin=""
-        />
-      </head>
       <body className="min-h-screen bg-[#F3F6FB] text-[#111827] font-sans antialiased selection:bg-[#3D77EE] selection:text-white">
         <AuthProvider>
           <LanguageProvider>

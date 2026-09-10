@@ -9,9 +9,17 @@ import {
   ChevronUp,
   Info,
   Navigation,
+  Train,
+  Stethoscope,
+  GraduationCap,
+  Building2,
+  ShoppingBag,
+  Footprints,
+  School,
 } from "lucide-react";
 import type { AmenityPOI } from "@/app/api/properties/nearby-amenities/route";
 import NearbySchoolDistrict from "@/components/property/NearbySchoolDistrict";
+import { getNearbyAmenityIcon } from "@/lib/amenity-icons";
 
 // Dynamic import Leaflet Map to avoid SSR issues
 const NearbyAmenitiesMap = dynamic(
@@ -32,6 +40,7 @@ interface ExploreNearbyAmenitiesProps {
   longitude: number;
   propertyTitle?: string;
   listingId?: string;
+  isFullWidth?: boolean;
 }
 
 // Client-side cache agar saat navigasi antar properti loading-nya INSTAN (0ms)
@@ -42,6 +51,7 @@ export default function ExploreNearbyAmenities({
   longitude,
   propertyTitle = "Lokasi Properti",
   listingId,
+  isFullWidth = false,
 }: ExploreNearbyAmenitiesProps) {
   const cacheKey = `${latitude.toFixed(3)}_${longitude.toFixed(3)}_${listingId || ""}`;
   const initialData = clientAmenitiesCache.get(cacheKey) || [];
@@ -115,7 +125,13 @@ export default function ExploreNearbyAmenities({
   const closestAmenity = amenities[0];
 
   return (
-    <div className="bg-white rounded-[18px] p-4 sm:p-5 border border-[#E2E8F0] shadow-2xs mb-5 space-y-4">
+    <div
+      className={
+        isFullWidth
+          ? "bg-white py-4 space-y-3.5 border-b border-[#E2E8F0]"
+          : "bg-white rounded-[18px] p-4 sm:p-5 border border-[#E2E8F0] shadow-2xs mb-5 space-y-4"
+      }
+    >
       {/* Header Section */}
       <div className="flex items-start justify-between gap-2 pb-3 border-b border-[#E2E8F0]">
         <div>
@@ -156,8 +172,9 @@ export default function ExploreNearbyAmenities({
               Akses Terdekat: <strong className="text-[#111827]">{closestAmenity.name}</strong>
             </span>
           </div>
-          <span className="text-[#3D77EE] font-bold text-[11px] shrink-0">
-            🚶 {closestAmenity.distanceFormatted} ({closestAmenity.durationFormatted.split(" ")[0]} mnt)
+          <span className="text-[#3D77EE] font-bold text-[11px] shrink-0 flex items-center gap-1">
+            <Footprints className="w-3 h-3" />
+            <span>{closestAmenity.distanceFormatted} ({closestAmenity.durationFormatted.split(" ")[0]} mnt)</span>
           </span>
         </div>
       )}
@@ -200,7 +217,8 @@ export default function ExploreNearbyAmenities({
               : "bg-white border border-[#E2E8F0] text-[#111827] hover:border-[#3D77EE]"
           }`}
         >
-          <span>🚆 Transport</span>
+          <Train className="w-3.5 h-3.5 shrink-0" />
+          <span>Transport</span>
           <span className="bg-slate-100 text-slate-600 text-[10px] px-1.5 py-0.2 rounded-full">
             {categoryCounts.transport}
           </span>
@@ -218,7 +236,8 @@ export default function ExploreNearbyAmenities({
               : "bg-white border border-[#E2E8F0] text-[#111827] hover:border-[#3D77EE]"
           }`}
         >
-          <span>🏥 Kesehatan</span>
+          <Stethoscope className="w-3.5 h-3.5 shrink-0" />
+          <span>Kesehatan</span>
           <span className="bg-slate-100 text-slate-600 text-[10px] px-1.5 py-0.2 rounded-full">
             {categoryCounts.health}
           </span>
@@ -236,7 +255,8 @@ export default function ExploreNearbyAmenities({
               : "bg-white border border-[#E2E8F0] text-[#111827] hover:border-[#3D77EE]"
           }`}
         >
-          <span>🎓 Pendidikan</span>
+          <GraduationCap className="w-3.5 h-3.5 shrink-0" />
+          <span>Pendidikan</span>
           <span className="bg-slate-100 text-slate-600 text-[10px] px-1.5 py-0.2 rounded-full">
             {categoryCounts.education}
           </span>
@@ -254,7 +274,8 @@ export default function ExploreNearbyAmenities({
               : "bg-white border border-[#E2E8F0] text-[#111827] hover:border-[#3D77EE]"
           }`}
         >
-          <span>🕌 Ibadah</span>
+          <Building2 className="w-3.5 h-3.5 shrink-0" />
+          <span>Ibadah</span>
           <span className="bg-slate-100 text-slate-600 text-[10px] px-1.5 py-0.2 rounded-full">
             {categoryCounts.worship}
           </span>
@@ -272,7 +293,8 @@ export default function ExploreNearbyAmenities({
               : "bg-white border border-[#E2E8F0] text-[#111827] hover:border-[#3D77EE]"
           }`}
         >
-          <span>🛍️ Belanja</span>
+          <ShoppingBag className="w-3.5 h-3.5 shrink-0" />
+          <span>Belanja</span>
           <span className="bg-slate-100 text-slate-600 text-[10px] px-1.5 py-0.2 rounded-full">
             {categoryCounts.shopping}
           </span>
@@ -284,10 +306,11 @@ export default function ExploreNearbyAmenities({
           className={`px-3 py-1.5 rounded-[8px] transition-all cursor-pointer whitespace-nowrap flex items-center gap-1 text-[11px] ${
             activeView === "schools"
               ? "bg-[#3D77EE] text-white shadow-xs font-bold"
-              : "bg-white border border-[#E2E8F0] text-[#111827] hover:border-[#3D77EE] hover:text-[#3D77EE]"
+              : "bg-white border border-[#E2E8F0] text-[#111827] hover:border-[#3D77EE]"
           }`}
         >
-          <span>🏫 Distrik Sekolah™</span>
+          <School className="w-3.5 h-3.5 shrink-0" />
+          <span>Distrik Sekolah™</span>
         </button>
       </div>
 
@@ -350,13 +373,14 @@ export default function ExploreNearbyAmenities({
                   >
                     <div className="flex items-center gap-2.5 min-w-0">
                       <div
-                        className="w-8 h-8 rounded-lg flex items-center justify-center text-sm shrink-0 border"
+                        className="w-8 h-8 rounded-lg flex items-center justify-center shrink-0 border"
                         style={{
                           backgroundColor: `${poi.color}15`,
                           borderColor: `${poi.color}30`,
+                          color: poi.color,
                         }}
                       >
-                        {poi.icon}
+                        {getNearbyAmenityIcon(poi.category, "w-4 h-4")}
                       </div>
 
                       <div className="min-w-0">
@@ -384,8 +408,9 @@ export default function ExploreNearbyAmenities({
                       <span className="text-xs font-bold text-[#111827] bg-slate-50 px-2 py-0.5 rounded-[6px] border border-[#E2E8F0]">
                         {poi.distanceFormatted}
                       </span>
-                      <span className="text-[10px] font-semibold text-[#3D77EE]">
-                        🚶 {poi.durationFormatted.split(" ")[0]} mnt
+                      <span className="text-[10px] font-semibold text-[#3D77EE] flex items-center gap-1">
+                        <Footprints className="w-3 h-3" />
+                        <span>{poi.durationFormatted.split(" ")[0]} mnt</span>
                       </span>
                     </div>
                   </div>

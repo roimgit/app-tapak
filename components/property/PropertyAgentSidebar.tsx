@@ -1,11 +1,13 @@
 "use client";
 
 import React, { useState } from "react";
-import { MessageCircle, Phone, Calendar, CheckCircle2, ShieldCheck, Lock } from "lucide-react";
+import Link from "next/link";
+import { MessageCircle, Phone, Calendar, CheckCircle2, ShieldCheck, Lock, ExternalLink } from "lucide-react";
 import { ListingItem } from "@/lib/types";
 import { formatRupiah, formatWhatsAppUrl } from "@/lib/utils";
 import { useAuth } from "@/context/AuthContext";
 import LoginRequiredModal from "@/components/auth/LoginRequiredModal";
+import { slugifyAgent } from "@/lib/agents";
 
 interface PropertyAgentSidebarProps {
   listing: ListingItem;
@@ -51,32 +53,70 @@ export default function PropertyAgentSidebar({ listing }: PropertyAgentSidebarPr
     <>
       <div className="sticky top-28 bg-white rounded-[18px] p-6 border border-slate-200 shadow-md">
         <div className="mb-5 pb-5 border-b border-slate-100">
-          <span className="text-xs font-semibold text-[#687280] block">Harga Sewa Pokok</span>
-          <div className="flex items-baseline gap-1 mt-1">
-            <span className="text-2xl sm:text-3xl font-extrabold text-[#111827]">
-              {formatRupiah(listing.price)}
-            </span>
-            <span className="text-xs text-[#687280] font-normal">/bulan</span>
-          </div>
-          <span className="mt-2 inline-flex items-center gap-1 text-[11px] font-semibold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200">
-            <CheckCircle2 className="w-3 h-3" />
-            IPL {formatRupiah(listing.maintenance_fee)}/bln Transparan
-          </span>
+          {listing.transaction_type === "DIJUAL" ? (
+            <>
+              <span className="text-xs font-semibold text-[#687280] block">Harga Jual</span>
+              <div className="flex items-baseline gap-1 mt-1">
+                <span className="text-2xl sm:text-3xl font-extrabold text-[#111827]">
+                  {formatRupiah(listing.price)}
+                </span>
+              </div>
+              {listing.price_status && (
+                <span
+                  className={`mt-2 inline-flex items-center gap-1 text-[11px] font-semibold px-2 py-0.5 rounded border ${
+                    listing.price_status === "NEGO"
+                      ? "bg-amber-50 text-amber-800 border-amber-200"
+                      : "bg-emerald-50 text-emerald-700 border-emerald-200"
+                  }`}
+                >
+                  {listing.price_status === "NEGO" ? "Harga Nego" : "Harga Nett"}
+                </span>
+              )}
+              {listing.payment_methods?.includes("BISA_KPR") && (
+                <span className="ml-1 mt-2 inline-flex items-center gap-1 text-[11px] font-semibold text-[#3D77EE] bg-blue-50 px-2 py-0.5 rounded border border-blue-200">
+                  Bisa KPR
+                </span>
+              )}
+            </>
+          ) : (
+            <>
+              <span className="text-xs font-semibold text-[#687280] block">Harga Sewa Pokok</span>
+              <div className="flex items-baseline gap-1 mt-1">
+                <span className="text-2xl sm:text-3xl font-extrabold text-[#111827]">
+                  {formatRupiah(listing.price)}
+                </span>
+                <span className="text-xs text-[#687280] font-normal">/bulan</span>
+              </div>
+              <span className="mt-2 inline-flex items-center gap-1 text-[11px] font-semibold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200">
+                <CheckCircle2 className="w-3 h-3" />
+                IPL {formatRupiah(listing.maintenance_fee)}/bln Transparan
+              </span>
+            </>
+          )}
         </div>
 
-        <div className="flex items-center gap-3.5 mb-6 p-3.5 rounded-[12px] bg-slate-50 border border-slate-200">
-          <div className="w-12 h-12 rounded-full bg-[#3D77EE] text-white font-bold flex items-center justify-center text-base shadow-sm">
-            {listing.agent_name.slice(0, 2).toUpperCase()}
-          </div>
-          <div>
-            <div className="flex items-center gap-1.5">
-              <span className="font-bold text-sm text-[#111827]">{listing.agent_name}</span>
-              <ShieldCheck className="w-4 h-4 text-[#3D77EE]" />
+        <Link
+          href={`/agen/${slugifyAgent(listing.agent_name)}`}
+          className="flex items-center justify-between gap-3.5 mb-6 p-3.5 rounded-[12px] bg-slate-50 hover:bg-blue-50/50 border border-slate-200 hover:border-[#3D77EE] transition-all group cursor-pointer"
+          title={`Lihat profil dan katalog toko properti ${listing.agent_name}`}
+        >
+          <div className="flex items-center gap-3.5 min-w-0">
+            <div className="w-12 h-12 rounded-full bg-[#3D77EE] text-white font-bold flex items-center justify-center text-base shadow-sm shrink-0 group-hover:scale-105 transition-transform">
+              {listing.agent_name.slice(0, 2).toUpperCase()}
             </div>
-            <span className="text-xs text-[#687280] block">Agen Properti Terlisensi Tapak.</span>
-            <span className="text-[11px] text-emerald-600 font-medium">● Respons cepat &lt;5 mnt</span>
+            <div className="min-w-0">
+              <div className="flex items-center gap-1.5">
+                <span className="font-bold text-sm text-[#111827] group-hover:text-[#3D77EE] transition-colors truncate">
+                  {listing.agent_name}
+                </span>
+                <ShieldCheck className="w-4 h-4 text-[#3D77EE] shrink-0" />
+              </div>
+              <span className="text-xs text-[#687280] block truncate">Agen Terlisensi Tapak.</span>
+              <span className="text-[11px] text-emerald-600 font-medium">● Respons cepat &lt;5 mnt</span>
+            </div>
           </div>
-        </div>
+          <ExternalLink className="w-4 h-4 text-slate-400 group-hover:text-[#3D77EE] shrink-0 transition-colors" />
+        </Link>
 
         {!isAuthenticated && (
           <div className="mb-3.5 p-2.5 rounded-[10px] bg-blue-50/60 border border-blue-100 flex items-center gap-2 text-[11px] text-[#3D77EE] font-semibold">

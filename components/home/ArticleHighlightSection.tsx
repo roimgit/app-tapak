@@ -1,14 +1,10 @@
-"use client";
-
 import React from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { ArrowRight, BookOpen, Clock, Calendar } from "lucide-react";
 import { getFeaturedArticles } from "@/lib/articles-data";
-import { useLanguage } from "@/context/LanguageContext";
 
 export default function ArticleHighlightSection() {
-  const { t } = useLanguage();
   const featuredArticles = getFeaturedArticles();
 
   return (
@@ -18,23 +14,20 @@ export default function ArticleHighlightSection() {
         <div>
           <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-[#3D77EE] mb-1.5">
             <BookOpen className="w-4 h-4 text-[#3D77EE]" />
-            <span>{t("art.badge", "Wawasan & Panduan Tapak.")}</span>
+            <span>Wawasan &amp; Panduan Tapak.</span>
           </div>
           <h2 className="text-2xl sm:text-3xl font-extrabold text-[#111827] tracking-tight">
-            {t("art.title", "Artikel Pilihan & Tren Hunian")}
+            Artikel Pilihan &amp; Tren Hunian
           </h2>
           <p className="text-sm text-[#687280] mt-1">
-            {t(
-              "art.subtitle",
-              "Tips praktis sewa, panduan legalitas kontrak, dan kalkulasi biaya riil dari para ahli"
-            )}
+            Tips praktis sewa, panduan legalitas kontrak, dan kalkulasi biaya riil dari para ahli
           </p>
         </div>
         <Link
           href="/artikel"
           className="inline-flex items-center gap-1.5 text-sm font-bold text-[#3D77EE] hover:text-[#2B55AB] transition-colors group shrink-0"
         >
-          <span>{t("art.see_all", "Lihat Seluruh Artikel")}</span>
+          <span>Lihat Seluruh Artikel</span>
           <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
         </Link>
       </div>
@@ -115,7 +108,7 @@ export default function ArticleHighlightSection() {
                 className="text-xs font-bold text-[#3D77EE] hover:text-[#2B55AB] flex items-center gap-1"
                 aria-label={`Baca artikel ${article.title}`}
               >
-                <span>{t("art.read", "Baca")}</span>
+                <span>Baca</span>
                 <ArrowRight className="w-3 h-3" />
               </Link>
             </div>

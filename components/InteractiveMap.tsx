@@ -1,5 +1,6 @@
 "use client";
 
+import "leaflet/dist/leaflet.css";
 import React, { useEffect, useRef, useMemo } from "react";
 import type { Map as LeafletMap, Marker as LeafletMarker } from "leaflet";
 import { ListingItem, BoundsFilter } from "@/lib/types";
@@ -297,7 +298,7 @@ export default function InteractiveMap({
     });
   }
 
-  // Update active marker styling and open popup when hovered or selected
+  // Update active marker styling, open popup, and smoothly fly to coordinates when selected
   useEffect(() => {
     const activeId = hoveredListingId || selectedListingId;
 
@@ -320,8 +321,22 @@ export default function InteractiveMap({
       }
     });
 
-    if (activeId && markersRef.current[activeId]) {
-      const targetMarker = markersRef.current[activeId];
+    if (selectedListingId) {
+      const targetItem = listings.find((l) => l.id === selectedListingId);
+      const targetMarker = markersRef.current[selectedListingId];
+
+      if (targetItem && mapInstanceRef.current) {
+        mapInstanceRef.current.flyTo([targetItem.latitude, targetItem.longitude], 15, {
+          duration: 0.7,
+          easeLinearity: 0.25,
+        });
+      }
+
+      if (targetMarker && !targetMarker.isPopupOpen()) {
+        targetMarker.openPopup();
+      }
+    } else if (hoveredListingId && markersRef.current[hoveredListingId]) {
+      const targetMarker = markersRef.current[hoveredListingId];
       if (!targetMarker.isPopupOpen()) {
         targetMarker.openPopup();
       }
