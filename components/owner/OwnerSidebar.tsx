@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react";
+import React, { useState } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import {
@@ -8,14 +8,18 @@ import {
   Home,
   PlusCircle,
   CreditCard,
+  Megaphone,
   MessageSquare,
   Calendar,
   Settings,
   Headphones,
   LogOut,
   X,
+  Crown,
 } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
+
+import OwnerSupportModal from "@/components/owner/OwnerSupportModal";
 
 interface OwnerSidebarProps {
   isOpen?: boolean;
@@ -25,12 +29,17 @@ interface OwnerSidebarProps {
 export default function OwnerSidebar({ isOpen = false, onClose }: OwnerSidebarProps) {
   const pathname = usePathname();
   const router = useRouter();
-  const { logout } = useAuth();
+  const { user, logout } = useAuth();
+  const [isSupportOpen, setIsSupportOpen] = useState(false);
 
-  const isDashboard = pathname === "/owner/dashboard" || pathname === "/owner";
+  // Akses Super Admin Studio HANYA bagi akun yang memiliki role Administrator
+  const isSuperAdmin = user?.role === "SUPER_ADMIN" || user?.role === "ADMIN";
+
+  const isDashboard = pathname === "/owner/dashboard";
   const isProperti = pathname === "/owner/properti";
   const isNewProperty = pathname === "/owner/properties/new";
   const isPaketIklan = pathname === "/owner/paket-iklan";
+  const isSlotIklan = pathname.startsWith("/owner/iklan");
 
   const navItems = [
     {
@@ -64,6 +73,19 @@ export default function OwnerSidebar({ isOpen = false, onClose }: OwnerSidebarPr
         bg: isPaketIklan
           ? "bg-white text-[#3D77EE]"
           : "bg-amber-50 text-amber-700 border border-amber-200",
+      },
+    },
+    {
+      label: "Pasang Slot Iklan",
+      href: "/owner/iklan",
+      icon: Megaphone,
+      isActive: isSlotIklan,
+      badge: {
+        text: "Slot",
+        isCircle: false,
+        bg: isSlotIklan
+          ? "bg-white text-[#3D77EE]"
+          : "bg-emerald-50 text-emerald-700 border border-emerald-200",
       },
     },
     {
@@ -134,6 +156,25 @@ export default function OwnerSidebar({ isOpen = false, onClose }: OwnerSidebarPr
             </button>
           </div>
 
+          {/* Quick Switch to Super Admin Studio if user is Super Admin */}
+          {isSuperAdmin && (
+            <div className="px-3 mb-3">
+              <Link
+                href="/admin"
+                onClick={onClose}
+                className="flex items-center gap-2.5 px-3 py-2.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-white transition-all text-xs font-bold border border-slate-700 shadow-sm group"
+              >
+                <div className="w-6 h-6 rounded-lg bg-amber-400/20 text-amber-400 flex items-center justify-center shrink-0">
+                  <Crown className="w-3.5 h-3.5" />
+                </div>
+                <div className="flex flex-col min-w-0">
+                  <span className="leading-tight truncate">Super Admin Studio</span>
+                  <span className="text-[10px] text-slate-400 font-normal">Kelola Konten &amp; Web</span>
+                </div>
+              </Link>
+            </div>
+          )}
+
           {/* Section Header: Menu Utama */}
           <div className="px-5 mb-1.5">
             <span className="text-[10px] uppercase font-bold tracking-wider text-slate-400 block px-2">
@@ -182,15 +223,14 @@ export default function OwnerSidebar({ isOpen = false, onClose }: OwnerSidebarPr
             Pengaturan &amp; Dukungan
           </span>
 
-          <a
-            href="https://wa.me/6281234567890?text=Halo%20Admin%20Tapak,%20saya%20butuh%20bantuan%20teknis%20portal%20owner."
-            target="_blank"
-            rel="noopener noreferrer"
-            className="flex items-center gap-2.5 px-3 py-2 text-slate-600 hover:bg-slate-50 hover:text-[#111827] rounded-xl transition-all text-xs font-semibold"
+          <button
+            type="button"
+            onClick={() => setIsSupportOpen(true)}
+            className="flex items-center gap-2.5 px-3 py-2 text-slate-600 hover:bg-slate-50 hover:text-[#111827] rounded-xl transition-all text-xs font-semibold w-full text-left cursor-pointer"
           >
             <Headphones className="w-4 h-4 text-[#3D77EE]" />
             <span>Bantuan &amp; Dukungan</span>
-          </a>
+          </button>
 
           <button
             type="button"
@@ -205,6 +245,12 @@ export default function OwnerSidebar({ isOpen = false, onClose }: OwnerSidebarPr
           </button>
         </div>
       </aside>
+
+      {/* Modal Popup Bantuan & Dukungan */}
+      <OwnerSupportModal
+        isOpen={isSupportOpen}
+        onClose={() => setIsSupportOpen(false)}
+      />
     </>
   );
 }

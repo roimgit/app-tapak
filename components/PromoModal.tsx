@@ -1,39 +1,41 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { X, ChevronLeft, ChevronRight } from "lucide-react";
+import { useSiteSettings } from "@/context/SiteSettingsContext";
 
 interface PromoAd {
-  id: number;
-  slug: string;
+  id: number | string;
+  href: string;
   title: string;
   imageSrc: string;
 }
 
-const PROMO_ADS: PromoAd[] = [
+const DEFAULT_PROMO_ADS: PromoAd[] = [
   {
     id: 1,
-    slug: "the-pakubuwono-signature-3br-full-furnished",
+    href: "/explore?slug=the-pakubuwono-signature-3br-full-furnished",
     title: "Promo Spesial Cashback Sewa Rp 3 Juta - The Pakubuwono Signature",
     imageSrc: "/promos/promo-pakubuwono.jpg",
   },
   {
     id: 2,
-    slug: "modern-minimalist-villa-sanur-tropical-sanctuary",
+    href: "/explore?slug=modern-minimalist-villa-sanur-tropical-sanctuary",
     title: "Sanur Promo Vila Diskon Sewa 15% - Modern Minimalist Villa Sanur",
     imageSrc: "/promos/promo-sanur.jpg",
   },
   {
     id: 3,
-    slug: "district-8-scbd-studio-suite-high-floor",
+    href: "/explore?slug=district-8-scbd-studio-suite-high-floor",
     title: "District 8 SCBD Gratis Biaya IPL 3 Bulan",
     imageSrc: "/promos/promo-scbd.jpg",
   },
 ];
 
 export default function PromoModal() {
+  const { settings } = useSiteSettings();
   const [isOpen, setIsOpen] = useState(false);
   const [tick, setTick] = useState(0);
   const [manualOffset, setManualOffset] = useState<number>(0);
@@ -45,6 +47,45 @@ export default function PromoModal() {
   // Interval rotasi iklan per banner: 4.5 detik (4500ms)
   const ROTATION_INTERVAL_MS = 4500;
 
+  const [activePopupBookings, setActivePopupBookings] = useState<PromoAd[]>([]);
+
+  useEffect(() => {
+    let isMounted = true;
+    fetch("/api/ads/bookings?status=ACTIVE_TODAY&slotType=PROMO_POPUP")
+      .then((res) => res.json())
+      .then((data) => {
+        if (isMounted && data.success && Array.isArray(data.data) && data.data.length > 0) {
+          const mapped: PromoAd[] = data.data.map((b: any) => ({
+            id: b.id,
+            href: b.targetUrl || "/explore",
+            title: b.title,
+            imageSrc: b.imageUrl,
+          }));
+          setActivePopupBookings(mapped);
+        }
+      })
+      .catch(() => {});
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
+  // Derive promo ads list from active bookings, settings or defaults
+  const promoAdsList: PromoAd[] = useMemo(() => {
+    const list: PromoAd[] = [...activePopupBookings];
+    if (settings?.promoModal?.image && settings.promoModal.image.trim() !== "") {
+      list.push({
+        id: "custom-admin-promo",
+        href: settings.promoModal.link || "/explore",
+        title: settings.promoModal.title || "Promo Eksklusif Tapak.",
+        imageSrc: settings.promoModal.image,
+      });
+    }
+    return list.length > 0 ? [...list, ...DEFAULT_PROMO_ADS] : DEFAULT_PROMO_ADS;
+  }, [activePopupBookings, settings?.promoModal]);
+
+  const totalAds = promoAdsList.length;
+
   // 1. Timer kontinu yang selalu berjalan di latar belakang (bahkan saat modal ditutup atau berpindah menu)
   useEffect(() => {
     const bgTimer = setInterval(() => {
@@ -55,6 +96,9 @@ export default function PromoModal() {
 
   // 2. Muncul otomatis setiap kali pengunjung membuka atau kembali ke halaman beranda
   useEffect(() => {
+    if (settings?.promoModal && settings.promoModal.isActive === false) {
+      return;
+    }
     const showTimer = setTimeout(() => setIsOpen(true), 400);
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === "Escape") setIsOpen(false);
@@ -64,12 +108,16 @@ export default function PromoModal() {
       clearTimeout(showTimer);
       window.removeEventListener("keydown", handleKeyDown);
     };
-  }, []);
+  }, [settings?.promoModal]);
+
+  // If promo modal is explicitly disabled by Super Admin, do not render
+  if (settings?.promoModal && settings.promoModal.isActive === false) {
+    return null;
+  }
 
   // Hitung index aktif berdasarkan waktu aktual berjalan (Continuous Background Rotation)
-  // Rumus ini menjamin ketika modal ditutup dan pengunjung berpindah-pindah menu, iklan terus berganti di latar belakang secara adil
   const timeSlot = Math.floor(Date.now() / ROTATION_INTERVAL_MS);
-  const currentIndex = Math.abs((timeSlot + manualOffset) % PROMO_ADS.length);
+  const currentIndex = totalAds > 0 ? Math.abs((timeSlot + manualOffset) % totalAds) : 0;
 
   const nextPromo = () => {
     setManualOffset((prev) => prev + 1);
@@ -80,7 +128,8 @@ export default function PromoModal() {
   };
 
   const setTargetIndex = (targetIdx: number) => {
-    const diff = (targetIdx - (timeSlot % PROMO_ADS.length) + PROMO_ADS.length * 10) % PROMO_ADS.length;
+    if (totalAds === 0) return;
+    const diff = (targetIdx - (timeSlot % totalAds) + totalAds * 10) % totalAds;
     setManualOffset(diff);
   };
 
@@ -106,9 +155,9 @@ export default function PromoModal() {
     }
   };
 
-  if (!isOpen) return null;
+  if (!isOpen || totalAds === 0) return null;
 
-  const current = PROMO_ADS[currentIndex];
+  const current = promoAdsList[currentIndex];
 
   return (
     <div
@@ -119,7 +168,7 @@ export default function PromoModal() {
         if (e.target === e.currentTarget) setIsOpen(false);
       }}
     >
-      {/* Container Banner Iklan: Proporsional di mobile (w-[88%] max-w-[360px]) & lebih tinggi di desktop (aspect-[16/10.5]) */}
+      {/* Container Banner Iklan */}
       <div
         onTouchStart={handleTouchStart}
         onTouchMove={handleTouchMove}
@@ -137,29 +186,33 @@ export default function PromoModal() {
         </button>
 
         {/* Tombol Panah Navigasi Kiri */}
-        <button
-          onClick={prevPromo}
-          type="button"
-          aria-label="Iklan sebelumnya"
-          className="absolute left-2 sm:left-4 top-1/2 -translate-y-1/2 z-30 w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-black/50 hover:bg-black/80 text-white flex items-center justify-center backdrop-blur-md shadow-xl transition-all active:scale-90 cursor-pointer"
-        >
-          <ChevronLeft className="w-4 h-4 sm:w-5 sm:h-5" />
-        </button>
+        {totalAds > 1 && (
+          <button
+            onClick={prevPromo}
+            type="button"
+            aria-label="Iklan sebelumnya"
+            className="absolute left-2 sm:left-4 top-1/2 -translate-y-1/2 z-30 w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-black/50 hover:bg-black/80 text-white flex items-center justify-center backdrop-blur-md shadow-xl transition-all active:scale-90 cursor-pointer"
+          >
+            <ChevronLeft className="w-4 h-4 sm:w-5 sm:h-5" />
+          </button>
+        )}
 
         {/* Tombol Panah Navigasi Kanan */}
-        <button
-          onClick={nextPromo}
-          type="button"
-          aria-label="Iklan selanjutnya"
-          className="absolute right-2 sm:right-4 top-1/2 -translate-y-1/2 z-30 w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-black/50 hover:bg-black/80 text-white flex items-center justify-center backdrop-blur-md shadow-xl transition-all active:scale-90 cursor-pointer"
-        >
-          <ChevronRight className="w-4 h-4 sm:w-5 sm:h-5" />
-        </button>
+        {totalAds > 1 && (
+          <button
+            onClick={nextPromo}
+            type="button"
+            aria-label="Iklan selanjutnya"
+            className="absolute right-2 sm:right-4 top-1/2 -translate-y-1/2 z-30 w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-black/50 hover:bg-black/80 text-white flex items-center justify-center backdrop-blur-md shadow-xl transition-all active:scale-90 cursor-pointer"
+          >
+            <ChevronRight className="w-4 h-4 sm:w-5 sm:h-5" />
+          </button>
+        )}
 
-        {/* Full Image Banner: Klik di mana saja langsung menuju properti yang sedang promo */}
+        {/* Full Image Banner */}
         <Link
           key={current.id}
-          href={`/explore?slug=${current.slug}`}
+          href={current.href}
           onClick={() => setIsOpen(false)}
           title={`Lihat detail penawaran ${current.title}`}
           className="relative w-full h-full block cursor-pointer animate-in fade-in duration-300"
@@ -175,24 +228,26 @@ export default function PromoModal() {
         </Link>
 
         {/* Indikator Titik / Lingkaran Pagination di Bagian Bawah Modal */}
-        <div className="absolute bottom-2.5 sm:bottom-4 left-1/2 -translate-x-1/2 z-30 flex items-center gap-2 pointer-events-auto">
-          {PROMO_ADS.map((item, idx) => {
-            const isActive = currentIndex === idx;
-            return (
-              <button
-                key={item.id}
-                type="button"
-                onClick={() => setTargetIndex(idx)}
-                aria-label={`Lihat iklan promo ${idx + 1}`}
-                className={`transition-all duration-300 rounded-full cursor-pointer ${
-                  isActive
-                    ? "w-6 sm:w-8 h-2 sm:h-2.5 bg-white shadow-lg shadow-white/50 ring-1.5 ring-white/60"
-                    : "w-2 sm:w-2.5 h-2 sm:h-2.5 bg-white/50 hover:bg-white/80 shadow-xs"
-                }`}
-              />
-            );
-          })}
-        </div>
+        {totalAds > 1 && (
+          <div className="absolute bottom-2.5 sm:bottom-4 left-1/2 -translate-x-1/2 z-30 flex items-center gap-2 pointer-events-auto">
+            {promoAdsList.map((item, idx) => {
+              const isActive = currentIndex === idx;
+              return (
+                <button
+                  key={item.id}
+                  type="button"
+                  onClick={() => setTargetIndex(idx)}
+                  aria-label={`Lihat iklan promo ${idx + 1}`}
+                  className={`transition-all duration-300 rounded-full cursor-pointer ${
+                    isActive
+                      ? "w-6 sm:w-8 h-2 sm:h-2.5 bg-white shadow-lg shadow-white/50 ring-1.5 ring-white/60"
+                      : "w-2 sm:w-2.5 h-2 sm:h-2.5 bg-white/50 hover:bg-white/80 shadow-xs"
+                  }`}
+                />
+              );
+            })}
+          </div>
+        )}
       </div>
     </div>
   );

@@ -72,12 +72,17 @@ export interface ListingItem {
   images: string[];
   amenities: string[];
   is_available: boolean;
+  approval_status?: "PENDING" | "APPROVED" | "REJECTED";
+  rejection_reason?: string | null;
+  owner_email?: string | null;
 
   agent_name: string;
   agent_phone: string;
   created_at?: string | Date;
   updated_at?: string | Date;
 }
+
+export type ApprovalStatus = "PENDING" | "APPROVED" | "REJECTED";
 
 export interface ListingFilters {
   query?: string;

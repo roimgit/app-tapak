@@ -2,20 +2,37 @@
 
 import React from "react";
 import Link from "next/link";
-import { Search, MapPin, Building2 } from "lucide-react";
+import { Search, MapPin, Building2, ShieldCheck } from "lucide-react";
 import { useLanguage } from "@/context/LanguageContext";
+import { useSiteSettings } from "@/context/SiteSettingsContext";
 
 export default function HeroSearchSection() {
   const { t } = useLanguage();
+  const { settings } = useSiteSettings();
+
+  const headline = settings?.hero?.headline || "Temukan Hunian Terverifikasi Tanpa Biaya Tersembunyi";
+  const subheadline = settings?.hero?.subheadline || "Jelajahi ribuan pilihan apartemen, rumah, vila, dan ruko dengan transparansi biaya IPL, sertifikat resmi, dan jaminan lokasi akurat.";
+  const searchPlaceholder = settings?.hero?.searchPlaceholder || t("search.placeholder", "Contoh: SCBD, Kebayoran, BSD City...");
+  const stats = settings?.hero?.stats || [];
 
   return (
     <section className="relative pt-3 pb-8 sm:pt-4 sm:pb-10 overflow-hidden">
       <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full max-w-[1440px] h-72 bg-gradient-to-b from-blue-100/60 to-transparent pointer-events-none rounded-full blur-3xl -z-10" />
 
       <div className="w-full max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8 xl:px-10 text-center">
-        <h1 className="sr-only">Pencarian Hunian Terverifikasi Tapak.</h1>
+        {/* Dynamic Headline & Subheadline managed via Super Admin Studio */}
+        <div className="max-w-3xl mx-auto mb-4 sm:mb-6 text-center">
+          <h1 className="text-2xl sm:text-3xl md:text-4xl font-black text-[#111827] tracking-tight leading-tight">
+            {headline}
+          </h1>
+          {subheadline && (
+            <p className="mt-2 text-xs sm:text-sm md:text-base text-[#687280] font-medium leading-relaxed max-w-2xl mx-auto">
+              {subheadline}
+            </p>
+          )}
+        </div>
 
-        <div className="mt-4 max-w-4xl mx-auto bg-white p-3 sm:p-4 rounded-[18px] shadow-xl shadow-blue-500/10 border border-slate-200">
+        <div className="max-w-4xl mx-auto bg-white p-3 sm:p-4 rounded-[18px] shadow-xl shadow-blue-500/10 border border-slate-200">
           <form action="/explore" method="GET" className="grid grid-cols-1 md:grid-cols-12 gap-3 items-center">
             <div className="md:col-span-5 flex items-center gap-3 px-3 py-2.5 bg-slate-50 hover:bg-slate-100/80 rounded-[10px] border border-slate-200 transition-colors">
               <MapPin className="w-5 h-5 text-[#3D77EE] shrink-0" />
@@ -26,7 +43,7 @@ export default function HeroSearchSection() {
                 <input
                   type="text"
                   name="q"
-                  placeholder={t("search.placeholder", "Contoh: SCBD, Kebayoran, BSD City...")}
+                  placeholder={searchPlaceholder}
                   className="w-full bg-transparent text-sm font-semibold text-[#111827] focus:outline-none placeholder:text-slate-400"
                 />
               </div>
@@ -79,6 +96,18 @@ export default function HeroSearchSection() {
               Verifikasi Gold Saja
             </Link>
           </div>
+
+          {/* Stats Bar (Managed by Super Admin Studio) */}
+          {stats.length > 0 && (
+            <div className="mt-3 pt-3 border-t border-slate-100 grid grid-cols-3 gap-2 text-center">
+              {stats.map((stat, idx) => (
+                <div key={idx} className="px-2">
+                  <div className="text-sm sm:text-base font-extrabold text-[#3D77EE]">{stat.value}</div>
+                  <div className="text-[10px] sm:text-[11px] text-[#687280] font-medium leading-tight">{stat.label}</div>
+                </div>
+              ))}
+            </div>
+          )}
         </div>
       </div>
     </section>

@@ -3,6 +3,7 @@
 import React, { useState } from "react";
 import Link from "next/link";
 import { X, CheckCircle2, ShieldCheck, ArrowRight } from "lucide-react";
+import ImageUploadDropzone from "@/components/ui/ImageUploadDropzone";
 
 export interface PackageData {
   id: string;
@@ -33,6 +34,8 @@ export default function ListingSubmissionModal({
     priceEstimate: "",
     paymentMethod: "QRIS",
   });
+  const [photoUrl, setPhotoUrl] = useState("");
+  const [refNumber] = useState(() => `TPK-${Math.floor(100000 + Math.random() * 900000)}`);
   const [isSubmitted, setIsSubmitted] = useState(false);
 
   if (!isOpen) return null;
@@ -41,7 +44,7 @@ export default function ListingSubmissionModal({
     e.preventDefault();
     setIsSubmitted(true);
 
-    const message = `Halo Admin Tapak, saya ingin pasang listing baru:\n\n*Detail Paket:*\n- Paket: ${selectedPackage.name} (${selectedPackage.price} ${selectedPackage.period})\n- Kuota: ${selectedPackage.quota}\n\n*Data Properti:*\n- Pemilik: ${formData.ownerName}\n- No. WhatsApp: ${formData.phone}\n- Judul: ${formData.propertyTitle}\n- Kategori: ${formData.propertyType}\n- Kota: ${formData.city}\n- Estimasi Harga: ${formData.priceEstimate}\n- Pembayaran: ${formData.paymentMethod}\n\nMohon petunjuk invoice dan verifikasi lapak. Terima kasih!`;
+    const message = `Halo Admin Tapak, saya ingin pasang listing baru:\n\n*Detail Paket:*\n- Paket: ${selectedPackage.name} (${selectedPackage.price} ${selectedPackage.period})\n- Kuota: ${selectedPackage.quota}\n\n*Data Properti:*\n- Pemilik: ${formData.ownerName}\n- No. WhatsApp: ${formData.phone}\n- Judul: ${formData.propertyTitle}\n- Kategori: ${formData.propertyType}\n- Kota: ${formData.city}\n- Estimasi Harga: ${formData.priceEstimate}${photoUrl ? `\n- Foto Unit (Supabase CDN): ${photoUrl}` : ""}\n- Pembayaran: ${formData.paymentMethod}\n\nMohon petunjuk invoice dan verifikasi lapak. Terima kasih!`;
     const waUrl = `https://wa.me/6281234567890?text=${encodeURIComponent(message)}`;
 
     setTimeout(() => {
@@ -185,6 +188,17 @@ export default function ListingSubmissionModal({
               </div>
 
               <div>
+                <ImageUploadDropzone
+                  folder="properties"
+                  initialUrl={photoUrl}
+                  label="Foto Utama Unit Properti (Supabase Storage)"
+                  aspectRatioLabel="Maks 5MB • Auto WebP"
+                  helpText="Foto diunggah ke Supabase Storage untuk dilampirkan langsung saat kurasi admin."
+                  onUploadSuccess={(url) => setPhotoUrl(url)}
+                />
+              </div>
+
+              <div>
                 <label className="block text-xs font-semibold text-[#111827] mb-1.5">
                   Metode Pembayaran Pilihan
                 </label>
@@ -235,7 +249,7 @@ export default function ListingSubmissionModal({
             <div className="mt-6 p-4 rounded-[14px] bg-slate-50 border border-slate-200 text-left space-y-2">
               <div className="flex justify-between text-xs">
                 <span className="text-slate-500">Nomor Referensi:</span>
-                <span className="font-mono font-bold text-[#111827]">TPK-{Date.now().toString().slice(-6)}</span>
+                <span className="font-mono font-bold text-[#111827]">{refNumber}</span>
               </div>
               <div className="flex justify-between text-xs">
                 <span className="text-slate-500">Paket Terpilih:</span>

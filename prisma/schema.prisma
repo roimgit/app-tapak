@@ -80,6 +80,9 @@ model Listing {
   images               String[]
   amenities            String[]
   is_available         Boolean          @default(true)
+  approval_status      String           @default("APPROVED") // PENDING, APPROVED, REJECTED
+  rejection_reason     String?
+  owner_email          String?          @default("admin@admin.com")
 
   nearby_amenities     NearbyAmenity[]
 
@@ -92,6 +95,7 @@ model Listing {
   @@index([city, district])
   @@index([verification_tier])
   @@index([transaction_type])
+  @@index([approval_status])
   @@map("listings")
 }
 
@@ -182,4 +186,30 @@ model User {
   updated_at    DateTime  @updatedAt
 
   @@map("users")
+}
+
+model AdBooking {
+  id             String   @id @default(cuid())
+  slot_type      String   // BILLBOARD_HOME, PROMO_POPUP
+  owner_email    String
+  owner_name     String
+  title          String
+  tag            String?
+  subtitle       String?
+  image_url      String
+  target_url     String
+  cta_text       String   @default("Lihat Unit")
+  start_date     DateTime
+  end_date       DateTime
+  payment_source String   @default("PAID") // PAID, PACKAGE_INCLUDED
+  amount_paid    Decimal  @default(0) @db.Decimal(15, 2)
+  status         String   @default("PENDING") // PENDING, APPROVED, REJECTED, EXPIRED
+  rejection_note String?
+  is_active      Boolean  @default(true)
+  created_at     DateTime @default(now())
+  updated_at     DateTime @updatedAt
+
+  @@index([slot_type, status])
+  @@index([owner_email])
+  @@map("ad_bookings")
 }

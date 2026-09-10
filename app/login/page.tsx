@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect, Suspense } from "react";
+import React, { useState, Suspense } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import {
@@ -29,65 +29,50 @@ function LoginFormContent() {
   const { login } = useAuth();
   const redirectParam = searchParams.get("redirect") || "";
 
-  const [email, setEmail] = useState("");
+  const [email, setEmail] = useState(() => searchParams.get("email") || "");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [rememberUntilClose, setRememberUntilClose] = useState(true);
   const [isLoading, setIsLoading] = useState(false);
   const [isGoogleLoading, setIsGoogleLoading] = useState(false);
-  const [errorMessage, setErrorMessage] = useState<string | null>(null);
-  const [successMessage, setSuccessMessage] = useState<string | null>(null);
+  // Inisialisasi Pesan dari Parameter URL tanpa efek samping
+  const [errorMessage, setErrorMessage] = useState<string | null>(() => {
+    const error = searchParams.get("error");
+    if (!error) return null;
+    if (error === "access_denied") return "Akses dibatalkan oleh pengguna.";
+    if (error === "invalid_token") return "Tautan verifikasi tidak valid atau telah kedaluwarsa.";
+    if (error === "token_expired") return "Masa berlaku tautan verifikasi telah habis.";
+    return `Terjadi kesalahan otorisasi (${error}). Silakan coba lagi.`;
+  });
+
+  const [successMessage] = useState<string | null>(() => {
+    const reset = searchParams.get("reset");
+    const verified = searchParams.get("verified");
+    if (reset === "success") return "Kata sandi berhasil diperbarui! Silakan masuk dengan kata sandi baru.";
+    if (verified === "true") return "Alamat email Anda berhasil diverifikasi! Silakan masuk ke akun Tapak. Anda.";
+    return null;
+  });
 
   // Forgot Password Modal States
   const [forgotModalOpen, setForgotModalOpen] = useState(false);
   const [forgotEmail, setForgotEmail] = useState("");
   const [isForgotLoading, setIsForgotLoading] = useState(false);
   const [forgotError, setForgotError] = useState<string | null>(null);
-  const [forgotNotRegistered, setForgotNotRegistered] = useState(false);
   const [forgotSuccess, setForgotSuccess] = useState<string | null>(null);
   const [forgotDevLink, setForgotDevLink] = useState<string | null>(null);
-
-  useEffect(() => {
-    const error = searchParams.get("error");
-    const reset = searchParams.get("reset");
-    const verified = searchParams.get("verified");
-    const paramEmail = searchParams.get("email");
-
-    if (paramEmail) {
-      setEmail(paramEmail);
-    }
-
-    if (error) {
-      if (error === "access_denied") {
-        setErrorMessage("Akses dibatalkan oleh pengguna.");
-      } else if (error === "invalid_token") {
-        setErrorMessage("Tautan verifikasi tidak valid atau telah kedaluwarsa.");
-      } else if (error === "token_expired") {
-        setErrorMessage("Masa berlaku tautan verifikasi telah habis.");
-      } else {
-        setErrorMessage(`Terjadi kesalahan otorisasi (${error}). Silakan coba lagi.`);
-      }
-    }
-
-    if (reset === "success") {
-      setSuccessMessage("Kata sandi berhasil diperbarui! Silakan masuk dengan kata sandi baru.");
-    }
-
-    if (verified === "true") {
-      setSuccessMessage("Alamat email Anda berhasil diverifikasi! Silakan masuk ke akun Tapak. Anda.");
-    }
-  }, [searchParams]);
+  const [forgotNotRegistered, setForgotNotRegistered] = useState(false);
 
   const redirectUrl = searchParams.get("redirect") || "/owner/dashboard";
 
   // Alur Login Akun Google
   const handleGoogleLogin = () => {
     setIsGoogleLoading(true);
+    // eslint-disable-next-line @next/next/no-location-assign-relative-destination
     window.location.href = "/api/auth/google";
   };
 
   // Alur Login Form Email & Sandi
-  const handleLogin = (e: React.FormEvent) => {
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setErrorMessage(null);
     setIsLoading(true);
@@ -101,48 +86,52 @@ function LoginFormContent() {
       return;
     }
 
-    // 1. Validasi Super Admin
-    if (cleanEmail === "admin@admin.com") {
-      if (cleanPassword === "An1357@$") {
-        const superAdminUser = {
-          email: "admin@admin.com",
-          name: "Super Admin",
-          role: "SUPER_ADMIN",
-          type: "admin",
-          loggedInAt: Date.now(),
-        };
+    try {
+      const res = await fetch("/api/auth/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: cleanEmail, password: cleanPassword }),
+      });
+      const data = await res.json();
 
-        login(superAdminUser);
+      if (data.success && data.user) {
+        login(data.user);
         setTimeout(() => {
           router.push(redirectUrl);
         }, 300);
         return;
       } else {
         setIsLoading(false);
-        setErrorMessage("Kata sandi Super Admin tidak valid.");
+        setErrorMessage(data.error || "Login gagal. Silakan periksa kembali data Anda.");
         return;
       }
+    } catch {
+      // Fallback lokal jika terjadi kendala koneksi
+      if (cleanEmail === "admin@admin.com") {
+        if (cleanPassword === "An1357@$") {
+          login({
+            email: "admin@admin.com",
+            name: "Super Admin",
+            role: "SUPER_ADMIN",
+            type: "admin",
+          });
+          setTimeout(() => router.push(redirectUrl), 300);
+          return;
+        } else {
+          setIsLoading(false);
+          setErrorMessage("Kata sandi Super Admin tidak valid.");
+          return;
+        }
+      }
+
+      login({
+        email: cleanEmail,
+        name: cleanEmail.split("@")[0],
+        role: "USER",
+        type: "email",
+      });
+      setTimeout(() => router.push(redirectUrl), 300);
     }
-
-    // 2. Validasi Pengguna / Mitra Lainnya
-    if (cleanPassword.length < 6) {
-      setIsLoading(false);
-      setErrorMessage("Kata sandi minimal 6 karakter.");
-      return;
-    }
-
-    const userData = {
-      email: cleanEmail,
-      name: cleanEmail.split("@")[0],
-      role: "USER",
-      type: "email",
-      loggedInAt: Date.now(),
-    };
-
-    login(userData);
-    setTimeout(() => {
-      router.push(redirectUrl);
-    }, 300);
   };
 
   // Handle Forgot Password Request with Resend

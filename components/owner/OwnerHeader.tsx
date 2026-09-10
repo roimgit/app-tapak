@@ -3,7 +3,7 @@
 import React, { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Search, Bell, Menu, ExternalLink, LogOut } from "lucide-react";
+import { Search, Bell, Menu, ExternalLink, LogOut, Crown } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
 
 interface OwnerHeaderProps {
@@ -16,8 +16,10 @@ export default function OwnerHeader({ onToggleSidebar }: OwnerHeaderProps) {
   const [searchQuery, setSearchQuery] = useState("");
   const [showNotifications, setShowNotifications] = useState(false);
 
+  // Akses Super Admin Studio HANYA bagi akun yang memiliki role Administrator
+  const isSuperAdmin = user?.role === "SUPER_ADMIN" || user?.role === "ADMIN";
   const displayName = user?.name || (user?.email ? user.email.split("@")[0] : "Mitra Tapak.");
-  const displayRole = user?.role === "SUPER_ADMIN" ? "Super Admin" : "Mitra Pemilik";
+  const displayRole = isSuperAdmin ? "Super Admin" : "Mitra Pemilik";
   const initialLetter = displayName.charAt(0).toUpperCase();
 
   const handleLogout = () => {
@@ -81,6 +83,17 @@ export default function OwnerHeader({ onToggleSidebar }: OwnerHeaderProps) {
 
         {/* Pemisah Vertikal */}
         <div className="h-6 w-px bg-slate-200 hidden sm:block" />
+
+        {/* Link Cepat ke Super Admin Studio (jika Super Admin) */}
+        {isSuperAdmin && (
+          <Link
+            href="/admin"
+            className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold transition-all shadow-xs border border-slate-700"
+          >
+            <Crown className="w-3.5 h-3.5 text-amber-400" />
+            <span className="hidden sm:inline">Admin Studio</span>
+          </Link>
+        )}
 
         {/* Link Cepat ke Web Publik */}
         <Link

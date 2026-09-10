@@ -35,6 +35,9 @@ const SELECTIVE_LISTING_FIELDS = {
   images: true,
   amenities: true,
   is_available: true,
+  approval_status: true,
+  rejection_reason: true,
+  owner_email: true,
   agent_name: true,
   agent_phone: true,
   created_at: true,
@@ -65,9 +68,11 @@ export async function getListings(
             area_sqm, land_area_sqm, address, district, city, 
             specs, is_private, co_broking_enabled, co_broking_commission::float as co_broking_commission,
             latitude, longitude, images, amenities, 
-            is_available, agent_name, agent_phone, created_at, updated_at
+            is_available, approval_status, rejection_reason, owner_email,
+            agent_name, agent_phone, created_at, updated_at
           FROM listings
           WHERE is_available = true
+            AND (approval_status = 'APPROVED' OR approval_status IS NULL)
             AND location IS NOT NULL
             AND ST_Contains(
               ST_MakeEnvelope(${bounds.minLng}, ${bounds.minLat}, ${bounds.maxLng}, ${bounds.maxLat}, 4326),
@@ -81,6 +86,7 @@ export async function getListings(
         const dbListings = await prisma.listing.findMany({
           where: {
             is_available: true,
+            approval_status: "APPROVED",
             ...(filters?.query && {
               OR: [
                 { title: { contains: filters.query, mode: "insensitive" } },
@@ -117,6 +123,9 @@ export async function getListings(
             price_status: l.price_status as ListingItem["price_status"],
             payment_methods: (l.payment_methods || []) as ListingItem["payment_methods"],
             specs: (l.specs || undefined) as ListingItem["specs"],
+            approval_status: (l.approval_status as ListingItem["approval_status"]) || "APPROVED",
+            rejection_reason: l.rejection_reason ?? null,
+            owner_email: l.owner_email ?? null,
           }));
         }
       }
@@ -215,6 +224,9 @@ export async function getListingBySlug(slug: string): Promise<ListingItem | null
           price_status: item.price_status as ListingItem["price_status"],
           payment_methods: (item.payment_methods || []) as ListingItem["payment_methods"],
           specs: (item.specs || undefined) as ListingItem["specs"],
+          approval_status: (item.approval_status as ListingItem["approval_status"]) || "APPROVED",
+          rejection_reason: item.rejection_reason ?? null,
+          owner_email: item.owner_email ?? null,
         };
       }
     } catch {

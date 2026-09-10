@@ -19,6 +19,8 @@ import MobileNavDrawer from "./MobileNavDrawer";
 import LanguageToggle from "./LanguageToggle";
 import { useLanguage } from "@/context/LanguageContext";
 import { useAuth } from "@/context/AuthContext";
+import { useSiteSettings } from "@/context/SiteSettingsContext";
+import Image from "next/image";
 
 export interface NavLinkItem {
   href: string;
@@ -39,6 +41,7 @@ export default function Navbar() {
   const pathname = usePathname();
   const { t } = useLanguage();
   const { isAuthenticated, user, logout } = useAuth();
+  const { settings } = useSiteSettings();
   const [activeHref, setActiveHref] = useState("/");
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
@@ -116,18 +119,33 @@ export default function Navbar() {
             : "w-full max-w-[1440px] px-4 sm:px-6 lg:px-8 xl:px-10"
         }`}
       >
-        {/* Brand Wordmark Logo */}
+        {/* Brand Logo (Text or Image based on Super Admin Settings) */}
         <Link
           href="/"
           onClick={() => handleLinkClick("/")}
           className="flex items-center gap-1 group shrink-0 mr-4"
         >
-          <span className="brand-wordmark text-2xl sm:text-3xl text-[#111827] tracking-tight group-hover:opacity-90 transition-opacity">
-            Tapak<span className="text-[#3D77EE]">.</span>
-          </span>
-          <span className="hidden xl:inline-block ml-3 px-2 py-0.5 text-[11px] font-semibold tracking-wider uppercase text-[#3D77EE] bg-blue-50 border border-blue-100 rounded-md whitespace-nowrap">
-            {t("nav.verified_badge", "Verified Homes")}
-          </span>
+          {settings.branding.logoType === "image" && settings.branding.logoImageUrl ? (
+            <div className="relative h-9 w-36">
+              <Image
+                src={settings.branding.logoImageUrl}
+                alt={settings.branding.logoText || "Tapak."}
+                fill
+                className="object-contain"
+                unoptimized
+              />
+            </div>
+          ) : (
+            <span className="brand-wordmark text-2xl sm:text-3xl text-[#111827] tracking-tight group-hover:opacity-90 transition-opacity">
+              {settings.branding.logoText || "Tapak"}
+              <span style={{ color: settings.branding.logoDotColor || "#3D77EE" }}>.</span>
+            </span>
+          )}
+          {settings.branding.badgeText && (
+            <span className="hidden xl:inline-block ml-3 px-2 py-0.5 text-[11px] font-semibold tracking-wider uppercase text-[#3D77EE] bg-blue-50 border border-blue-100 rounded-md whitespace-nowrap">
+              {t("nav.verified_badge", settings.branding.badgeText)}
+            </span>
+          )}
         </Link>
 
         {/* Navigation Links with whitespace-nowrap and generous spacing */}
@@ -162,6 +180,18 @@ export default function Navbar() {
           {/* User Auth Status or Login Button */}
           {isAuthenticated ? (
             <div className="flex items-center gap-2">
+              {/* If user is Super Admin or Admin, also show Admin Studio Button */}
+              {(user?.role === "SUPER_ADMIN" || user?.role === "ADMIN") && (
+                <Link
+                  href="/admin"
+                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-[10px] bg-slate-900 text-white hover:bg-slate-800 transition-colors text-xs font-bold shadow-2xs"
+                  title="Masuk ke Super Admin Studio"
+                >
+                  <span className="w-2 h-2 rounded-full bg-emerald-400" />
+                  <span>Admin Studio</span>
+                </Link>
+              )}
+
               <Link
                 href="/owner/dashboard"
                 className="flex items-center gap-2 px-3 py-1.5 rounded-[10px] bg-blue-50 border border-blue-200 text-[#3D77EE] hover:bg-blue-100 transition-colors text-xs font-bold shadow-2xs"

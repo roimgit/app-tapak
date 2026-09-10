@@ -1,10 +1,11 @@
 "use client";
 
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback, useMemo } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { ChevronLeft, ChevronRight, Sparkles, ExternalLink } from "lucide-react";
 import { useLanguage } from "@/context/LanguageContext";
+import { useSiteSettings } from "@/context/SiteSettingsContext";
 
 interface BannerItem {
   id: string;
@@ -17,7 +18,7 @@ interface BannerItem {
   link: string;
 }
 
-const BANNER_ADS: BannerItem[] = [
+const DEFAULT_BANNER_ADS: BannerItem[] = [
   {
     id: "ad-kpr-mandiri",
     tag: "MITRA FINANSIAL",
@@ -62,24 +63,74 @@ const BANNER_ADS: BannerItem[] = [
 
 export default function HomeBillboardBanner() {
   const { t } = useLanguage();
+  const { settings } = useSiteSettings();
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isPaused, setIsPaused] = useState(false);
+  const [activeBookings, setActiveBookings] = useState<BannerItem[]>([]);
 
-  const handleNext = useCallback(() => {
-    setCurrentIndex((prev) => (prev + 1) % BANNER_ADS.length);
+  useEffect(() => {
+    let isMounted = true;
+    fetch("/api/ads/bookings?status=ACTIVE_TODAY&slotType=BILLBOARD_HOME")
+      .then((res) => res.json())
+      .then((data) => {
+        if (isMounted && data.success && Array.isArray(data.data) && data.data.length > 0) {
+          const mapped: BannerItem[] = data.data.map((b: any) => ({
+            id: b.id,
+            tag: b.tag || "DEVELOPER RESMI",
+            partnerName: b.ownerName,
+            title: b.title,
+            subtitle: b.subtitle || "",
+            image: b.imageUrl,
+            ctaText: b.ctaText || "Lihat Unit",
+            link: b.targetUrl || "/explore",
+          }));
+          setActiveBookings(mapped);
+        }
+      })
+      .catch(() => {});
+    return () => {
+      isMounted = false;
+    };
   }, []);
 
+  const bannerList: BannerItem[] = useMemo(() => {
+    if (activeBookings.length > 0) {
+      return activeBookings;
+    }
+    if (settings?.billboard && settings.billboard.length > 0) {
+      const active = settings.billboard.filter((b) => b.isActive);
+      if (active.length > 0) return active;
+    }
+    return DEFAULT_BANNER_ADS;
+  }, [activeBookings, settings?.billboard]);
+
+  const totalBanners = bannerList.length;
+
+  const handleNext = useCallback(() => {
+    if (totalBanners === 0) return;
+    setCurrentIndex((prev) => (prev + 1) % totalBanners);
+  }, [totalBanners]);
+
   const handlePrev = () => {
-    setCurrentIndex((prev) => (prev - 1 + BANNER_ADS.length) % BANNER_ADS.length);
+    if (totalBanners === 0) return;
+    setCurrentIndex((prev) => (prev - 1 + totalBanners) % totalBanners);
   };
 
   useEffect(() => {
-    if (isPaused) return;
+    if (currentIndex >= totalBanners) {
+      setCurrentIndex(0);
+    }
+  }, [totalBanners, currentIndex]);
+
+  useEffect(() => {
+    if (isPaused || totalBanners <= 1) return;
     const timer = setInterval(() => {
       handleNext();
     }, 5000);
     return () => clearInterval(timer);
-  }, [isPaused, handleNext]);
+  }, [isPaused, handleNext, totalBanners]);
+
+  if (totalBanners === 0) return null;
 
   return (
     <section className="pt-4 pb-2 w-full max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8 xl:px-10">
@@ -89,7 +140,7 @@ export default function HomeBillboardBanner() {
         onMouseLeave={() => setIsPaused(false)}
       >
         {/* Banner Images with Crossfade */}
-        {BANNER_ADS.map((item, index) => {
+        {bannerList.map((item, index) => {
           const isActive = index === currentIndex;
           return (
             <div
@@ -149,37 +200,43 @@ export default function HomeBillboardBanner() {
         })}
 
         {/* Navigation Arrows */}
-        <button
-          type="button"
-          onClick={handlePrev}
-          className="absolute left-3 top-1/2 -translate-y-1/2 z-30 w-8 h-8 rounded-full bg-white/20 hover:bg-white/40 backdrop-blur-xs text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
-          aria-label="Banner Sebelumnya"
-        >
-          <ChevronLeft className="w-5 h-5" />
-        </button>
-        <button
-          type="button"
-          onClick={handleNext}
-          className="absolute right-3 top-1/2 -translate-y-1/2 z-30 w-8 h-8 rounded-full bg-white/20 hover:bg-white/40 backdrop-blur-xs text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
-          aria-label="Banner Berikutnya"
-        >
-          <ChevronRight className="w-5 h-5" />
-        </button>
+        {totalBanners > 1 && (
+          <>
+            <button
+              type="button"
+              onClick={handlePrev}
+              className="absolute left-3 top-1/2 -translate-y-1/2 z-30 w-8 h-8 rounded-full bg-white/20 hover:bg-white/40 backdrop-blur-xs text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer"
+              aria-label="Banner Sebelumnya"
+            >
+              <ChevronLeft className="w-5 h-5" />
+            </button>
+            <button
+              type="button"
+              onClick={handleNext}
+              className="absolute right-3 top-1/2 -translate-y-1/2 z-30 w-8 h-8 rounded-full bg-white/20 hover:bg-white/40 backdrop-blur-xs text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer"
+              aria-label="Banner Berikutnya"
+            >
+              <ChevronRight className="w-5 h-5" />
+            </button>
+          </>
+        )}
 
         {/* Indicator Dots */}
-        <div className="absolute bottom-3 right-5 z-30 flex items-center gap-1.5">
-          {BANNER_ADS.map((_, idx) => (
-            <button
-              key={idx}
-              type="button"
-              onClick={() => setCurrentIndex(idx)}
-              className={`h-1.5 rounded-full transition-all duration-300 ${
-                idx === currentIndex ? "w-6 bg-[#3D77EE]" : "w-1.5 bg-white/50 hover:bg-white/80"
-              }`}
-              aria-label={`Pilih Banner ${idx + 1}`}
-            />
-          ))}
-        </div>
+        {totalBanners > 1 && (
+          <div className="absolute bottom-3 right-5 z-30 flex items-center gap-1.5">
+            {bannerList.map((_, idx) => (
+              <button
+                key={idx}
+                type="button"
+                onClick={() => setCurrentIndex(idx)}
+                className={`h-1.5 rounded-full transition-all duration-300 cursor-pointer ${
+                  idx === currentIndex ? "w-6 bg-[#3D77EE]" : "w-1.5 bg-white/50 hover:bg-white/80"
+                }`}
+                aria-label={`Pilih Banner ${idx + 1}`}
+              />
+            ))}
+          </div>
+        )}
       </div>
     </section>
   );

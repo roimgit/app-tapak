@@ -149,7 +149,10 @@ export async function POST(request: NextRequest) {
         is_private: Boolean(is_private),
         co_broking_enabled: Boolean(co_broking_enabled),
         co_broking_commission: co_broking_commission ? Number(co_broking_commission) : null,
-        is_available: true,
+        is_available: false, // Baru tampil ke publik setelah disetujui admin
+        approval_status: "PENDING",
+        rejection_reason: null,
+        owner_email: body.owner_email ? String(body.owner_email).trim().toLowerCase() : "admin@admin.com",
         agent_name: String(agent_name).trim(),
         agent_phone: String(agent_phone).trim(),
       },

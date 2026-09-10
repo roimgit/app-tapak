@@ -27,16 +27,21 @@ export default async function OwnerPropertiesPage() {
 
   const formattedProperties: PropertyData[] = dbListings.map((item, index) => {
     const isAvailable = item.is_available;
-    const isReview = item.verification_tier === "NONE" || item.verification_tier === "BRONZE";
-    const status: PropertyData["status"] = !isAvailable
-      ? "tersewa"
-      : isReview
+    const isPending = item.approval_status === "PENDING";
+    const isRejected = item.approval_status === "REJECTED";
+    const status: PropertyData["status"] = isRejected
+      ? "ditolak"
+      : isPending
       ? "review"
+      : !isAvailable
+      ? "tersewa"
       : "aktif";
-    const statusText = !isAvailable
-      ? "Tersewa (Off-Market)"
-      : isReview
+    const statusText = isRejected
+      ? "Ditolak Admin"
+      : isPending
       ? "Menunggu Kurasi"
+      : !isAvailable
+      ? "Tersewa (Off-Market)"
       : "Aktif / Tayang";
 
     const pType =
@@ -72,6 +77,7 @@ export default async function OwnerPropertiesPage() {
       leads: 4 + ((index * 7) % 25),
       score: 85 + (index % 12),
       scoreLabel: "Optimal",
+      curatorNote: item.rejection_reason || undefined,
       slug: item.slug,
     };
   });

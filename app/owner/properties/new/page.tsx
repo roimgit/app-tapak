@@ -279,7 +279,9 @@ export default function NewPropertyPage() {
         throw new Error(data.error || "Gagal menyimpan properti");
       }
 
-      alert("Listing properti berhasil diterbitkan ke database Tapak!");
+      alert(
+        "Listing properti baru Anda berhasil dikirim! Status saat ini: 'Menunggu Kurasi Admin' dan akan otomatis tayang di web publik setelah disetujui."
+      );
       router.push("/owner/properti");
     } catch (err: any) {
       console.error("Submit listing error:", err);

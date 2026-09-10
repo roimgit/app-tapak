@@ -32,7 +32,7 @@ export interface PropertyData {
   price: string;
   pricePeriod: string;
   priceNote: string;
-  status: "aktif" | "review" | "tersewa" | "draft";
+  status: "aktif" | "review" | "tersewa" | "draft" | "ditolak";
   statusText: string;
   statusNote: string;
   isFeatured?: boolean;
@@ -127,6 +127,8 @@ export default function PropertyCardRow({
                   ? "bg-emerald-50 text-emerald-700 border border-emerald-100"
                   : property.status === "review"
                   ? "bg-amber-50 text-amber-800 border border-amber-100"
+                  : property.status === "ditolak"
+                  ? "bg-rose-50 text-rose-800 border border-rose-200"
                   : "bg-slate-100 text-slate-700"
               }`}
             >
@@ -136,6 +138,8 @@ export default function PropertyCardRow({
                     ? "bg-emerald-500"
                     : property.status === "review"
                     ? "bg-amber-500"
+                    : property.status === "ditolak"
+                    ? "bg-rose-500"
                     : "bg-slate-400"
                 }`}
               />
