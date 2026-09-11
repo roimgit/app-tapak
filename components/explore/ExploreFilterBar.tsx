@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-import { Search, RotateCcw, ListFilter, Map as MapIcon, ArrowLeft } from "lucide-react";
+import { Search, RotateCcw, ListFilter, Map as MapIcon } from "lucide-react";
 
 interface ExploreFilterBarProps {
   searchQuery: string;
@@ -40,18 +40,6 @@ export default function ExploreFilterBar({
     <div className="bg-white border-b border-[#E2E8F0] px-4 sm:px-6 py-2.5 shrink-0 z-20 w-full">
       <div className="w-full flex flex-wrap items-center gap-3 justify-between">
         <div className="flex items-center gap-2.5 flex-1 min-w-[260px]">
-          {isDetailActive && onBackToList && (
-            <button
-              onClick={onBackToList}
-              type="button"
-              className="inline-flex items-center gap-1.5 px-3.5 py-2 text-xs font-bold text-[#3D77EE] bg-white hover:bg-blue-50 border border-[#E2E8F0] hover:border-[#3D77EE] rounded-[10px] shadow-2xs transition-all active:scale-95 shrink-0 cursor-pointer"
-            >
-              <ArrowLeft className="w-4 h-4 text-[#3D77EE]" />
-              <span className="hidden sm:inline">Kembali ke Daftar Hunian</span>
-              <span className="sm:hidden">Kembali</span>
-            </button>
-          )}
-
           <div className="flex-1 max-w-md relative">
             <Search className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
             <input

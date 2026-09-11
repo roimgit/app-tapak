@@ -131,17 +131,27 @@ export default function ExploreClient({
     setHoveredListingId(id);
   }, []);
 
-  const handleViewDetail = useCallback((id: string) => {
-    setDetailedListingId(id);
-    setSelectedListingId(id);
-    setIsListOpen(true);
-    setMobileView("list");
-  }, []);
+  const handleViewDetail = useCallback(
+    (id: string) => {
+      setDetailedListingId(id);
+      setSelectedListingId(id);
+      setIsListOpen(true);
+      setMobileView("list");
+      const target = initialListings.find((item) => item.id === id);
+      if (target?.slug && typeof window !== "undefined") {
+        window.history.replaceState(null, "", `/explore?slug=${encodeURIComponent(target.slug)}`);
+      }
+    },
+    [initialListings]
+  );
 
   const handleOpenList = useCallback(() => {
     setIsListOpen(true);
     setDetailedListingId(null);
     setMobileView("list");
+    if (typeof window !== "undefined") {
+      window.history.replaceState(null, "", "/explore");
+    }
   }, []);
 
   const handleCloseList = useCallback(() => {
@@ -151,6 +161,9 @@ export default function ExploreClient({
 
   const handleBackToList = useCallback(() => {
     setDetailedListingId(null);
+    if (typeof window !== "undefined") {
+      window.history.replaceState(null, "", "/explore");
+    }
   }, []);
 
   const detailedListing = useMemo(() => {

@@ -6,8 +6,31 @@ import PropertyTopHeader from "@/components/owner/properties/PropertyTopHeader";
 import PropertyListClient from "@/components/owner/properties/PropertyListClient";
 import type { PropertyData } from "@/components/owner/properties/PropertyCardRow";
 
-export const dynamic = "force-dynamic";
-export const revalidate = 0;
+import { getCurrentOwnerEmail } from "@/lib/owner-session";
+
+const SELECT_OWNER_PROPERTIES = {
+  id: true,
+  title: true,
+  slug: true,
+  price: true,
+  deposit: true,
+  maintenance_fee: true,
+  verification_tier: true,
+  property_type: true,
+  area_sqm: true,
+  district: true,
+  city: true,
+  images: true,
+  is_available: true,
+  approval_status: true,
+  rejection_reason: true,
+  updated_at: true,
+  created_at: true,
+} as const;
+
+// In-memory cache dipisah per owner email (TTL 30 detik)
+const ownerPropertiesCache = new Map<string, { data: any[]; expiresAt: number }>();
+const CACHE_TTL_MS = 30_000;
 
 export const metadata: Metadata = {
   title: "Daftar Properti Saya — Tapak. Owner Studio",
@@ -16,13 +39,32 @@ export const metadata: Metadata = {
 };
 
 export default async function OwnerPropertiesPage() {
+  const ownerEmail = await getCurrentOwnerEmail();
+  const now = Date.now();
   let dbListings: any[] = [];
-  try {
-    dbListings = await prisma.listing.findMany({
-      orderBy: { created_at: "desc" },
-    });
-  } catch (error) {
-    console.error("Gagal mengambil data listing owner:", error);
+
+  const cached = ownerPropertiesCache.get(ownerEmail);
+  if (cached && now < cached.expiresAt) {
+    dbListings = cached.data;
+  } else {
+    try {
+      dbListings = await prisma.listing.findMany({
+        where: {
+          owner_email: {
+            equals: ownerEmail,
+            mode: "insensitive",
+          },
+        },
+        orderBy: { created_at: "desc" },
+        select: SELECT_OWNER_PROPERTIES,
+      });
+      ownerPropertiesCache.set(ownerEmail, {
+        data: dbListings,
+        expiresAt: now + CACHE_TTL_MS,
+      });
+    } catch (error) {
+      console.error("Gagal mengambil data listing owner:", error);
+    }
   }
 
   const formattedProperties: PropertyData[] = dbListings.map((item, index) => {
@@ -85,10 +127,13 @@ export default async function OwnerPropertiesPage() {
   return (
     <main className="w-full max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8 py-8 flex flex-col gap-6">
       {/* 1. Breadcrumb, Header & Action Buttons */}
-      <PropertyTopHeader />
+      <PropertyTopHeader totalCount={formattedProperties.length} />
 
       {/* 2. Interactive Property List with Dynamic Metrics Ribbon, Filters & Pagination */}
-      <PropertyListClient initialProperties={formattedProperties} />
+      <PropertyListClient
+        initialProperties={formattedProperties}
+        ownerEmail={ownerEmail}
+      />
     </main>
   );
 }

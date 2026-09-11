@@ -4,11 +4,44 @@ import { revalidatePath } from "next/cache";
 
 export const dynamic = "force-dynamic";
 
+const MODERATION_SELECT_FIELDS = {
+  id: true,
+  title: true,
+  slug: true,
+  price: true,
+  property_type: true,
+  district: true,
+  city: true,
+  area_sqm: true,
+  images: true,
+  verification_tier: true,
+  approval_status: true,
+  rejection_reason: true,
+  is_available: true,
+  owner_email: true,
+  created_at: true,
+  updated_at: true,
+} as const;
+
+// In-memory cache untuk respon GET moderasi (TTL 30 detik)
+const moderationCache = new Map<string, { body: any; expiresAt: number }>();
+const CACHE_TTL_MS = 30_000;
+
+function invalidateModerationCache() {
+  moderationCache.clear();
+}
+
 export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
     const status = searchParams.get("status") || "ALL"; // ALL, PENDING, APPROVED, REJECTED
     const query = searchParams.get("q") || "";
+    const cacheKey = `${status}:${query}`;
+
+    const cached = moderationCache.get(cacheKey);
+    if (cached && Date.now() < cached.expiresAt) {
+      return NextResponse.json(cached.body);
+    }
 
     const whereClause: any = {};
     if (status !== "ALL") {
@@ -24,23 +57,26 @@ export async function GET(request: NextRequest) {
       ];
     }
 
-    const listings = await prisma.listing.findMany({
-      where: whereClause,
-      orderBy: { created_at: "desc" },
-      take: 100,
-    });
+    // Jalankan seluruh query secara paralel via Promise.all (bukan sekuensial)
+    const [listings, pendingCount, approvedCount, rejectedCount] = await Promise.all([
+      prisma.listing.findMany({
+        where: whereClause,
+        orderBy: { created_at: "desc" },
+        take: 100,
+        select: MODERATION_SELECT_FIELDS,
+      }),
+      prisma.listing.count({
+        where: { approval_status: "PENDING" },
+      }),
+      prisma.listing.count({
+        where: { approval_status: "APPROVED" },
+      }),
+      prisma.listing.count({
+        where: { approval_status: "REJECTED" },
+      }),
+    ]);
 
-    const pendingCount = await prisma.listing.count({
-      where: { approval_status: "PENDING" },
-    });
-    const approvedCount = await prisma.listing.count({
-      where: { approval_status: "APPROVED" },
-    });
-    const rejectedCount = await prisma.listing.count({
-      where: { approval_status: "REJECTED" },
-    });
-
-    return NextResponse.json({
+    const responseBody = {
       success: true,
       data: listings,
       counts: {
@@ -49,7 +85,14 @@ export async function GET(request: NextRequest) {
         approved: approvedCount,
         rejected: rejectedCount,
       },
+    };
+
+    moderationCache.set(cacheKey, {
+      body: responseBody,
+      expiresAt: Date.now() + CACHE_TTL_MS,
     });
+
+    return NextResponse.json(responseBody);
   } catch (error: any) {
     console.error("[MODERATION-GET] Error fetching listings for moderation:", error);
     return NextResponse.json(
@@ -102,6 +145,7 @@ export async function PATCH(request: NextRequest) {
 
     // Revalidasi cache
     try {
+      invalidateModerationCache();
       revalidatePath("/explore");
       revalidatePath("/");
       revalidatePath("/admin/properti");

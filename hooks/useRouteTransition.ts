@@ -1,15 +1,17 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { usePathname, useSearchParams } from "next/navigation";
 
 export function useRouteTransition() {
   const [isNavigating, setIsNavigating] = useState(false);
   const pathname = usePathname();
   const searchParams = useSearchParams();
+  const timerRef = useRef<NodeJS.Timeout | null>(null);
 
   // Reset loading saat URL atau parameter pencarian berubah
   useEffect(() => {
+    if (timerRef.current) clearTimeout(timerRef.current);
     setIsNavigating(false);
   }, [pathname, searchParams]);
 
@@ -37,13 +39,23 @@ export function useRouteTransition() {
       return;
     }
 
-    // Periksa apakah rute tujuan berbeda dari rute saat ini
+    // Abaikan klik hash pada halaman yang sama (misal: /#keunggulan ketika sudah di /)
     const currentTarget = window.location.pathname + window.location.search;
-    const resolvedUrl = new URL(href, window.location.origin);
-    const resolvedTarget = resolvedUrl.pathname + resolvedUrl.search;
+    try {
+      const resolvedUrl = new URL(href, window.location.origin);
+      const resolvedTarget = resolvedUrl.pathname + resolvedUrl.search;
 
-    if (resolvedTarget !== currentTarget) {
-      setIsNavigating(true);
+      if (resolvedTarget === currentTarget) {
+        return;
+      }
+
+      // Aktifkan progress bar dengan jeda singkat agar transisi super cepat tidak menyebabkan flicker
+      if (timerRef.current) clearTimeout(timerRef.current);
+      timerRef.current = setTimeout(() => {
+        setIsNavigating(true);
+      }, 60);
+    } catch {
+      // Abaikan jika URL tidak valid
     }
   }, []);
 
@@ -51,14 +63,15 @@ export function useRouteTransition() {
     document.addEventListener("click", handleLinkClick, { capture: true });
     return () => {
       document.removeEventListener("click", handleLinkClick, { capture: true });
+      if (timerRef.current) clearTimeout(timerRef.current);
     };
   }, [handleLinkClick]);
 
-  // Timeout pengaman agar tidak stuck jika navigasi terhambat
+  // Timeout pengaman agar progress bar tidak menyala terus-menerus
   useEffect(() => {
     if (!isNavigating) return;
-    const timer = setTimeout(() => setIsNavigating(false), 8000);
-    return () => clearTimeout(timer);
+    const safetyTimer = setTimeout(() => setIsNavigating(false), 4000);
+    return () => clearTimeout(safetyTimer);
   }, [isNavigating]);
 
   return { isNavigating, stopNavigation: () => setIsNavigating(false) };

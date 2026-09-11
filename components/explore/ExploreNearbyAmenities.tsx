@@ -8,7 +8,6 @@ import {
   ChevronDown,
   ChevronUp,
   Info,
-  Navigation,
   Train,
   Stethoscope,
   GraduationCap,
@@ -136,8 +135,7 @@ export default function ExploreNearbyAmenities({
       <div className="flex items-start justify-between gap-2 pb-3 border-b border-[#E2E8F0]">
         <div>
           <div className="flex items-center gap-2">
-            <h3 className="font-bold text-sm sm:text-base text-[#111827] flex items-center gap-1.5">
-              <Navigation className="w-4 h-4 text-[#3D77EE]" />
+            <h3 className="font-bold text-sm sm:text-base text-[#111827]">
               <span>Fasilitas Sekitar &amp; Aksesibilitas</span>
             </h3>
           </div>

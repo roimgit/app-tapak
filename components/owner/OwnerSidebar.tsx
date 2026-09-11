@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import {
@@ -31,6 +31,7 @@ export default function OwnerSidebar({ isOpen = false, onClose }: OwnerSidebarPr
   const router = useRouter();
   const { user, logout } = useAuth();
   const [isSupportOpen, setIsSupportOpen] = useState(false);
+  const [propertyCount, setPropertyCount] = useState<number | null>(null);
 
   // Akses Super Admin Studio HANYA bagi akun yang memiliki role Administrator
   const isSuperAdmin = user?.role === "SUPER_ADMIN" || user?.role === "ADMIN";
@@ -40,6 +41,18 @@ export default function OwnerSidebar({ isOpen = false, onClose }: OwnerSidebarPr
   const isNewProperty = pathname === "/owner/properties/new";
   const isPaketIklan = pathname === "/owner/paket-iklan";
   const isSlotIklan = pathname.startsWith("/owner/iklan");
+
+  useEffect(() => {
+    const email = user?.email || "admin@admin.com";
+    fetch(`/api/owner/property-count?email=${encodeURIComponent(email)}`)
+      .then((r) => r.json())
+      .then((d) => {
+        if (d.success && typeof d.count === "number") {
+          setPropertyCount(d.count);
+        }
+      })
+      .catch(() => {});
+  }, [user?.email]);
 
   const navItems = [
     {
@@ -54,13 +67,16 @@ export default function OwnerSidebar({ isOpen = false, onClose }: OwnerSidebarPr
       href: "/owner/properti",
       icon: Home,
       isActive: isProperti,
-      badge: {
-        text: "12",
-        isCircle: false,
-        bg: isProperti
-          ? "bg-white text-[#3D77EE]"
-          : "bg-blue-50 text-[#3D77EE] border border-blue-100",
-      },
+      badge:
+        propertyCount !== null && propertyCount > 0
+          ? {
+              text: propertyCount.toString(),
+              isCircle: false,
+              bg: isProperti
+                ? "bg-white text-[#3D77EE]"
+                : "bg-blue-50 text-[#3D77EE] border border-blue-100",
+            }
+          : null,
     },
     {
       label: "Paket Iklan",
@@ -161,6 +177,7 @@ export default function OwnerSidebar({ isOpen = false, onClose }: OwnerSidebarPr
             <div className="px-3 mb-3">
               <Link
                 href="/admin"
+                prefetch={true}
                 onClick={onClose}
                 className="flex items-center gap-2.5 px-3 py-2.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-white transition-all text-xs font-bold border border-slate-700 shadow-sm group"
               >
@@ -190,6 +207,7 @@ export default function OwnerSidebar({ isOpen = false, onClose }: OwnerSidebarPr
                 <Link
                   key={item.label}
                   href={item.href}
+                  prefetch={true}
                   onClick={onClose}
                   className={`flex items-center justify-between px-3 py-2.5 rounded-xl transition-all text-xs font-semibold ${
                     item.isActive

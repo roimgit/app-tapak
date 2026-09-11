@@ -2,8 +2,7 @@
 
 import React, { useState } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
-import { Search, Bell, Menu, ExternalLink, LogOut, Crown } from "lucide-react";
+import { Search, Bell, Menu, ExternalLink, Crown } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
 
 interface OwnerHeaderProps {
@@ -11,8 +10,7 @@ interface OwnerHeaderProps {
 }
 
 export default function OwnerHeader({ onToggleSidebar }: OwnerHeaderProps) {
-  const router = useRouter();
-  const { user, logout } = useAuth();
+  const { user } = useAuth();
   const [searchQuery, setSearchQuery] = useState("");
   const [showNotifications, setShowNotifications] = useState(false);
 
@@ -21,11 +19,6 @@ export default function OwnerHeader({ onToggleSidebar }: OwnerHeaderProps) {
   const displayName = user?.name || (user?.email ? user.email.split("@")[0] : "Mitra Tapak.");
   const displayRole = isSuperAdmin ? "Super Admin" : "Mitra Pemilik";
   const initialLetter = displayName.charAt(0).toUpperCase();
-
-  const handleLogout = () => {
-    logout();
-    router.push("/login");
-  };
 
   return (
     <header className="fixed top-0 left-0 md:left-[260px] right-0 h-16 bg-white/95 backdrop-blur-xl border-b border-slate-200/80 shadow-[0_1px_8px_rgba(0,0,0,0.03)] z-30 flex items-center justify-between px-4 sm:px-6 lg:px-8">
@@ -118,17 +111,6 @@ export default function OwnerHeader({ onToggleSidebar }: OwnerHeaderProps) {
             </span>
           </div>
         </div>
-
-        {/* Tombol Logout Cepat */}
-        <button
-          type="button"
-          onClick={handleLogout}
-          className="p-2 rounded-[10px] text-slate-400 hover:text-red-600 hover:bg-red-50 transition-colors cursor-pointer ml-1"
-          title="Keluar dari Akun"
-          aria-label="Keluar dari Akun"
-        >
-          <LogOut className="w-4 h-4" />
-        </button>
       </div>
     </header>
   );

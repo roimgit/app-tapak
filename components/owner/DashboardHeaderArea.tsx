@@ -1,6 +1,6 @@
 import React from "react";
 import Link from "next/link";
-import { Plus, Calendar, Sparkles, ArrowRight } from "lucide-react";
+import { Calendar, Sparkles, ArrowRight } from "lucide-react";
 
 interface DashboardHeaderAreaProps {
   ownerName?: string;
@@ -25,16 +25,6 @@ export default function DashboardHeaderArea({
             <span className="inline-block w-1.5 h-1.5 rounded-full bg-slate-300" />
             <span>Kelola kuota tayang dan performa leads properti Anda secara efisien</span>
           </p>
-        </div>
-
-        <div className="flex items-center gap-3 self-start md:self-auto">
-          <Link
-            href="/paket-iklan"
-            className="group inline-flex items-center gap-2 px-5 py-2.5 bg-[#3D77EE] hover:bg-[#2B55AB] text-white text-xs sm:text-sm font-bold rounded-[10px] shadow-sm transition-all active:scale-[0.98]"
-          >
-            <Plus className="w-4 h-4 transition-transform group-hover:rotate-90" />
-            <span>Pasang Iklan Properti</span>
-          </Link>
         </div>
       </section>
 

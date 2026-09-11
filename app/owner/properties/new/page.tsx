@@ -27,6 +27,7 @@ import {
 } from "lucide-react";
 import type { AmenityPOI } from "@/app/api/properties/nearby-amenities/route";
 import { TransactionType, CertificateType, PriceStatus, PaymentMethod } from "@/lib/types";
+import { useAuth } from "@/context/AuthContext";
 
 const DraggableLocationMap = dynamic(
   () => import("@/components/owner/properties/DraggableLocationMap"),
@@ -67,6 +68,7 @@ const PRESET_IMAGES = [
 
 export default function NewPropertyPage() {
   const router = useRouter();
+  const { user } = useAuth();
 
   // Basic Form State
   const [transactionType, setTransactionType] = useState<TransactionType>("DISEWAKAN");
@@ -255,8 +257,9 @@ export default function NewPropertyPage() {
         longitude: coords.lng,
         images: [formData.imageUrl || PRESET_IMAGES[0]],
         amenities: selectedAmenities,
-        agent_name: formData.agent_name,
-        agent_phone: formData.agent_phone,
+        agent_name: user?.name || formData.agent_name || "Mitra Pemilik Tapak",
+        agent_phone: formData.agent_phone || "6281234567890",
+        owner_email: user?.email ? user.email.toLowerCase().trim() : "admin@admin.com",
         nearby_amenities: chosenAmenities.map((a) => ({
           category: a.category,
           name: a.name,

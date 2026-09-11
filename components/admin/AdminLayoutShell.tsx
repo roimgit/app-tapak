@@ -14,20 +14,42 @@ interface AdminLayoutShellProps {
 export default function AdminLayoutShell({ children }: AdminLayoutShellProps) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const { user, isAuthenticated, login } = useAuth();
-  const [checkingAuth, setCheckingAuth] = useState(true);
-
-  useEffect(() => {
-    // Beri waktu sejenak untuk memverifikasi session dari sessionStorage & cookie
-    const timer = setTimeout(() => {
-      setCheckingAuth(false);
-    }, 400);
-    return () => clearTimeout(timer);
-  }, []);
-
   const isAdministrator =
     user?.role === "SUPER_ADMIN" ||
     user?.role === "ADMIN" ||
     user?.email?.toLowerCase() === "admin@admin.com";
+
+  const [checkingAuth, setCheckingAuth] = useState(() => {
+    if (typeof window === "undefined") return true;
+    try {
+      const rawSession = sessionStorage.getItem("tapak_owner_session");
+      if (rawSession) {
+        const parsed = JSON.parse(rawSession);
+        if (
+          parsed?.role === "SUPER_ADMIN" ||
+          parsed?.role === "ADMIN" ||
+          parsed?.email?.toLowerCase() === "admin@admin.com"
+        ) {
+          return false;
+        }
+      }
+    } catch {
+      // safe
+    }
+    return true;
+  });
+
+  useEffect(() => {
+    if (!checkingAuth) return;
+    if (isAdministrator) {
+      setCheckingAuth(false);
+      return;
+    }
+    const timer = setTimeout(() => {
+      setCheckingAuth(false);
+    }, 60);
+    return () => clearTimeout(timer);
+  }, [checkingAuth, isAdministrator]);
 
   // State loading otorisasi
   if (checkingAuth) {

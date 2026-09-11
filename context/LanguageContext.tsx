@@ -468,11 +468,56 @@ const LanguageContext = createContext<LanguageContextType>({
 export function LanguageProvider({ children }: { children: React.ReactNode }) {
   const [language, setLanguageState] = useState<Language>("ID");
 
+  const applyGoogleTranslation = (lang: Language) => {
+    if (typeof window === "undefined") return;
+    const targetCode = lang === "ENG" ? "en" : lang === "KOR" ? "ko" : "id";
+    const cookieVal = lang === "ID" ? "/id/id" : `/id/${targetCode}`;
+
+    try {
+      document.cookie = `googtrans=${cookieVal}; path=/;`;
+      if (window.location.hostname) {
+        document.cookie = `googtrans=${cookieVal}; path=/; domain=${window.location.hostname};`;
+        document.cookie = `googtrans=${cookieVal}; path=/; domain=.${window.location.hostname};`;
+      }
+
+      if (lang === "ID") {
+        document.cookie = "googtrans=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
+        if (window.location.hostname) {
+          document.cookie = `googtrans=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/; domain=${window.location.hostname};`;
+          document.cookie = `googtrans=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/; domain=.${window.location.hostname};`;
+        }
+      }
+
+      // Polling memastikan .goog-te-combo yang diinjeksi secara asinkronus oleh Google siap dieksekusi
+      let attempts = 0;
+      const interval = setInterval(() => {
+        attempts++;
+        const select = document.querySelector<HTMLSelectElement>(".goog-te-combo");
+        if (select) {
+          if (select.value !== targetCode) {
+            select.value = targetCode;
+            select.dispatchEvent(new Event("change", { bubbles: true }));
+          }
+          clearInterval(interval);
+        } else if (attempts >= 30) {
+          clearInterval(interval);
+        }
+      }, 120);
+    } catch {
+      // ignore
+    }
+  };
+
   useEffect(() => {
     try {
       const saved = localStorage.getItem("tapak_language") as Language | null;
       if (saved && (saved === "ID" || saved === "KOR" || saved === "ENG")) {
         setLanguageState(saved);
+        if (saved !== "ID") {
+          setTimeout(() => {
+            applyGoogleTranslation(saved);
+          }, 800);
+        }
       }
     } catch {
       // ignore
@@ -486,6 +531,7 @@ export function LanguageProvider({ children }: { children: React.ReactNode }) {
     } catch {
       // ignore
     }
+    applyGoogleTranslation(lang);
   };
 
   const t = (key: string, fallback?: string): string => {

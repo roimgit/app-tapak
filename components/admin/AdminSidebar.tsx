@@ -163,6 +163,7 @@ export default function AdminSidebar({ isOpen, onClose }: AdminSidebarProps) {
                 <Link
                   key={item.href}
                   href={item.href}
+                  prefetch={true}
                   onClick={() => onClose()}
                   className={`flex items-center justify-between px-3 py-2.5 rounded-[10px] text-xs font-semibold transition-all ${
                     item.active
@@ -197,6 +198,7 @@ export default function AdminSidebar({ isOpen, onClose }: AdminSidebarProps) {
 
           <Link
             href="/owner/dashboard"
+            prefetch={true}
             className="flex items-center gap-2.5 px-3 py-2 rounded-[8px] text-xs font-medium text-slate-300 hover:text-white hover:bg-slate-800 transition-colors"
           >
             <UserCheck className="w-4 h-4 text-[#3D77EE]" />

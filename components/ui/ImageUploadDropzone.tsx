@@ -102,7 +102,11 @@ export default function ImageUploadDropzone({
         if (json.success && json.data?.url) {
           setCurrentUrl(json.data.url);
           onUploadSuccess(json.data.url);
-          setSuccessInfo("Gambar berhasil diunggah ke Supabase Storage!");
+          setSuccessInfo(
+            json.data.url.startsWith("/uploads")
+              ? "Gambar berhasil disimpan ke penyimpanan lokal Tapak!"
+              : "Gambar berhasil diunggah ke Supabase Storage!"
+          );
           setTimeout(() => setSuccessInfo(null), 4000);
         } else {
           setErrorMessage(json.error || "Gagal mengunggah gambar ke cloud.");
@@ -176,7 +180,9 @@ export default function ImageUploadDropzone({
             <div className="flex items-center gap-1.5">
               <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
               <span className="text-xs font-bold text-emerald-800">
-                Tersimpan di Supabase Storage (CDN)
+                {currentUrl.startsWith("/uploads")
+                  ? "Tersimpan di Media Lokal Tapak"
+                  : "Tersimpan di Supabase Storage (CDN)"}
               </span>
             </div>
             <a

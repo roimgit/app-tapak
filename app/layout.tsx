@@ -20,6 +20,14 @@ export const metadata: Metadata = {
   description:
     "Temukan hunian sewa dan beli dengan transparansi total, verifikasi legalitas berlapis, dan rincian biaya lengkap di Tapak.",
   keywords: ["sewa apartemen", "sewa rumah", "kost eksklusif", "tapak", "properti indonesia"],
+  icons: {
+    icon: [
+      { url: "/favicon.png", type: "image/png" },
+      { url: "/favicon.ico", sizes: "any" },
+    ],
+    shortcut: "/favicon.png",
+    apple: "/apple-touch-icon.png",
+  },
 };
 
 import { LanguageProvider } from "@/context/LanguageContext";
@@ -27,6 +35,7 @@ import { AuthProvider } from "@/context/AuthContext";
 import { SiteSettingsProvider } from "@/context/SiteSettingsContext";
 import PageLoadingIndicator from "@/components/PageLoadingIndicator";
 import DynamicFavicon from "@/components/DynamicFavicon";
+import GoogleTranslateProvider from "@/components/GoogleTranslateProvider";
 
 export default function RootLayout({
   children,
@@ -39,6 +48,7 @@ export default function RootLayout({
         <AuthProvider>
           <LanguageProvider>
             <SiteSettingsProvider>
+              <GoogleTranslateProvider />
               <DynamicFavicon />
               <PageLoadingIndicator />
               {children}

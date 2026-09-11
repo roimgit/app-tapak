@@ -39,6 +39,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         if (parsed && parsed.email) {
           setUser(parsed);
           setIsAuthenticated(true);
+          document.cookie = `tapak_session_email=${encodeURIComponent(parsed.email)}; path=/; max-age=2592000; SameSite=Lax`;
           return;
         }
       }
@@ -55,6 +56,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           setIsAuthenticated(true);
           try {
             sessionStorage.setItem("tapak_owner_session", JSON.stringify(data.user));
+            document.cookie = `tapak_session_email=${encodeURIComponent(data.user.email)}; path=/; max-age=2592000; SameSite=Lax`;
           } catch {
             // ignore
           }
@@ -71,6 +73,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     try {
       localStorage.removeItem("tapak_owner_session");
       sessionStorage.setItem("tapak_owner_session", JSON.stringify(userData));
+      document.cookie = `tapak_session_email=${encodeURIComponent(userData.email)}; path=/; max-age=2592000; SameSite=Lax`;
     } catch {
       // ignore
     }
@@ -82,6 +85,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     try {
       sessionStorage.removeItem("tapak_owner_session");
       localStorage.removeItem("tapak_owner_session");
+      document.cookie = "tapak_session_email=; path=/; max-age=0; SameSite=Lax";
       fetch("/api/auth/logout", { method: "POST" }).catch(() => {});
     } catch {
       // ignore

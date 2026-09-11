@@ -15,6 +15,7 @@ import {
   MessageCircle,
   Share2,
   Lock,
+  ExternalLink,
 } from "lucide-react";
 import { ListingItem } from "@/lib/types";
 import { formatRupiah, formatWhatsAppUrl } from "@/lib/utils";
@@ -66,15 +67,21 @@ export default function ExploreDetailPanel({ listing, onBack }: ExploreDetailPan
   };
 
   const handleShare = () => {
+    const shareUrl = listing.slug
+      ? `${window.location.origin}/property/${listing.slug}`
+      : `${window.location.origin}/explore?id=${listing.id}`;
+
     if (typeof navigator !== "undefined" && navigator.share) {
-      navigator.share({
-        title: listing.title,
-        text: `Lihat listing ${listing.title} di Tapak.`,
-        url: window.location.href,
-      }).catch(() => {});
+      navigator
+        .share({
+          title: listing.title,
+          text: `Lihat listing ${listing.title} di Tapak.`,
+          url: shareUrl,
+        })
+        .catch(() => {});
     } else if (typeof navigator !== "undefined" && navigator.clipboard) {
-      navigator.clipboard.writeText(window.location.href);
-      alert("Tautan berhasil disalin ke clipboard!");
+      navigator.clipboard.writeText(shareUrl);
+      alert("Tautan properti berhasil disalin ke clipboard!");
     }
   };
 
@@ -91,14 +98,27 @@ export default function ExploreDetailPanel({ listing, onBack }: ExploreDetailPan
           <span>Kembali ke Daftar</span>
         </button>
 
-        <button
-          onClick={handleShare}
-          type="button"
-          className="p-1.5 rounded-[6px] bg-slate-100 hover:bg-slate-200 text-slate-700 hover:text-[#3D77EE] transition-colors cursor-pointer"
-          title="Bagikan Properti"
-        >
-          <Share2 className="w-3.5 h-3.5" />
-        </button>
+        <div className="flex items-center gap-1.5">
+          {listing.slug && (
+            <Link
+              href={`/property/${listing.slug}`}
+              target="_blank"
+              className="p-1.5 rounded-[6px] bg-slate-100 hover:bg-slate-200 text-slate-700 hover:text-[#3D77EE] transition-colors cursor-pointer"
+              title="Buka Halaman Penuh Properti"
+            >
+              <ExternalLink className="w-3.5 h-3.5" />
+            </Link>
+          )}
+
+          <button
+            onClick={handleShare}
+            type="button"
+            className="p-1.5 rounded-[6px] bg-slate-100 hover:bg-slate-200 text-slate-700 hover:text-[#3D77EE] transition-colors cursor-pointer"
+            title="Bagikan Properti"
+          >
+            <Share2 className="w-3.5 h-3.5" />
+          </button>
+        </div>
       </div>
 
       {/* Galeri Gambar Properti (Full Width) */}
@@ -180,13 +200,30 @@ export default function ExploreDetailPanel({ listing, onBack }: ExploreDetailPan
           {listing.title}
         </h1>
 
-        <div className="flex items-center gap-1 mt-1 text-xs text-[#687280]">
-          <MapPin className="w-3.5 h-3.5 text-[#3D77EE] shrink-0" />
-          <span className="truncate">
-            {listing.is_private
-              ? `Kawasan ${listing.district}, ${listing.city}`
-              : `${listing.address}, ${listing.district}, ${listing.city}`}
-          </span>
+        <div className="flex items-center justify-between gap-1.5 mt-1.5 text-xs text-[#687280]">
+          <div className="flex items-center gap-1 min-w-0 flex-1">
+            <MapPin className="w-3.5 h-3.5 text-[#3D77EE] shrink-0" />
+            <span className="truncate">
+              {listing.is_private
+                ? `Kawasan ${listing.district}, ${listing.city}`
+                : `${listing.address}, ${listing.district}, ${listing.city}`}
+            </span>
+          </div>
+
+          <a
+            href={
+              listing.latitude && listing.longitude
+                ? `https://www.google.com/maps?q=${listing.latitude},${listing.longitude}`
+                : `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(`${listing.address || listing.title}, ${listing.district}, ${listing.city}`)}`
+            }
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center gap-1 px-2 py-0.5 rounded-[6px] text-[10.5px] font-semibold text-[#3D77EE] bg-blue-50 hover:bg-blue-100 border border-blue-200 transition-colors shrink-0 cursor-pointer"
+            title="Buka Lokasi di Google Maps"
+          >
+            <span>Google Maps</span>
+            <ExternalLink className="w-3 h-3" />
+          </a>
         </div>
       </div>
 

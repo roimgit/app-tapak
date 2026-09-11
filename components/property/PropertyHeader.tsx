@@ -1,15 +1,41 @@
+"use client";
+
 import React from "react";
 import Link from "next/link";
-import { ArrowLeft, Share2, Heart, MapPin, CheckCircle2, EyeOff } from "lucide-react";
+import { ArrowLeft, Share2, Heart, MapPin, CheckCircle2, EyeOff, ExternalLink } from "lucide-react";
 import VerificationBadge from "@/components/VerificationBadge";
 import { ListingItem } from "@/lib/types";
-
 
 interface PropertyHeaderProps {
   listing: ListingItem;
 }
 
 export default function PropertyHeader({ listing }: PropertyHeaderProps) {
+  const handleShare = () => {
+    const shareUrl =
+      typeof window !== "undefined"
+        ? (listing.slug ? `${window.location.origin}/property/${listing.slug}` : window.location.href)
+        : "";
+
+    if (typeof navigator !== "undefined" && navigator.share) {
+      navigator
+        .share({
+          title: listing.title,
+          text: `Lihat listing ${listing.title} di Tapak.`,
+          url: shareUrl,
+        })
+        .catch(() => {});
+    } else if (typeof navigator !== "undefined" && navigator.clipboard) {
+      navigator.clipboard.writeText(shareUrl);
+      alert("Tautan properti berhasil disalin ke clipboard!");
+    }
+  };
+
+  const googleMapsUrl =
+    listing.latitude && listing.longitude
+      ? `https://www.google.com/maps?q=${listing.latitude},${listing.longitude}`
+      : `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(`${listing.address || listing.title}, ${listing.district}, ${listing.city}`)}`;
+
   return (
     <div className="mb-6">
       <div className="flex items-center justify-between mb-5">
@@ -24,7 +50,8 @@ export default function PropertyHeader({ listing }: PropertyHeaderProps) {
         <div className="flex items-center gap-2">
           <button
             type="button"
-            className="p-2 rounded-[10px] bg-white border border-slate-200 text-slate-600 hover:text-[#3D77EE] transition-all shadow-xs"
+            onClick={handleShare}
+            className="p-2 rounded-[10px] bg-white border border-slate-200 text-slate-600 hover:text-[#3D77EE] transition-all shadow-xs cursor-pointer"
             title="Bagikan Properti"
           >
             <Share2 className="w-4 h-4" />
@@ -85,13 +112,26 @@ export default function PropertyHeader({ listing }: PropertyHeaderProps) {
         {listing.title}
       </h1>
 
-      <div className="flex items-center gap-2 mt-2 text-xs sm:text-sm text-[#687280]">
-        <MapPin className="w-4 h-4 text-[#3D77EE] shrink-0" />
-        <span>
-          {listing.is_private
-            ? `Kawasan ${listing.district}, ${listing.city}`
-            : `${listing.address}, ${listing.district}, ${listing.city}`}
-        </span>
+      <div className="flex items-center flex-wrap gap-2.5 mt-2.5 text-xs sm:text-sm text-[#687280]">
+        <div className="flex items-center gap-1.5">
+          <MapPin className="w-4 h-4 text-[#3D77EE] shrink-0" />
+          <span>
+            {listing.is_private
+              ? `Kawasan ${listing.district}, ${listing.city}`
+              : `${listing.address}, ${listing.district}, ${listing.city}`}
+          </span>
+        </div>
+
+        <a
+          href={googleMapsUrl}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-[8px] text-xs font-semibold text-[#3D77EE] bg-blue-50 hover:bg-blue-100/80 border border-blue-200 transition-colors shadow-2xs cursor-pointer"
+          title="Buka Lokasi di Google Maps"
+        >
+          <span>Buka Google Maps</span>
+          <ExternalLink className="w-3.5 h-3.5" />
+        </a>
       </div>
     </div>
   );

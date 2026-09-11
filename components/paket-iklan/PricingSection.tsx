@@ -11,7 +11,7 @@ import {
   Megaphone,
 } from "lucide-react";
 import ListingSubmissionModal, { PackageData } from "./ListingSubmissionModal";
-import { DEFAULT_PACKAGES, PackageDefinition } from "@/lib/package-settings";
+import { DEFAULT_PACKAGES, PackageDefinition } from "@/lib/package-definitions";
 import { formatRupiah } from "@/lib/utils";
 
 type BillingMode = "standard" | "hemat";

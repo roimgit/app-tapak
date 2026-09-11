@@ -122,16 +122,18 @@ export default function Navbar() {
         {/* Brand Logo (Text or Image based on Super Admin Settings) */}
         <Link
           href="/"
+          prefetch={true}
           onClick={() => handleLinkClick("/")}
-          className="flex items-center gap-1 group shrink-0 mr-4"
+          translate="no"
+          className="notranslate flex items-center gap-1 group shrink-0 mr-4"
         >
           {settings.branding.logoType === "image" && settings.branding.logoImageUrl ? (
-            <div className="relative h-9 w-36">
+            <div className="relative h-9 w-36 sm:w-44">
               <Image
                 src={settings.branding.logoImageUrl}
                 alt={settings.branding.logoText || "Tapak."}
                 fill
-                className="object-contain"
+                className="object-contain object-left"
                 unoptimized
               />
             </div>
@@ -139,11 +141,6 @@ export default function Navbar() {
             <span className="brand-wordmark text-2xl sm:text-3xl text-[#111827] tracking-tight group-hover:opacity-90 transition-opacity">
               {settings.branding.logoText || "Tapak"}
               <span style={{ color: settings.branding.logoDotColor || "#3D77EE" }}>.</span>
-            </span>
-          )}
-          {settings.branding.badgeText && (
-            <span className="hidden xl:inline-block ml-3 px-2 py-0.5 text-[11px] font-semibold tracking-wider uppercase text-[#3D77EE] bg-blue-50 border border-blue-100 rounded-md whitespace-nowrap">
-              {t("nav.verified_badge", settings.branding.badgeText)}
             </span>
           )}
         </Link>
@@ -158,6 +155,7 @@ export default function Navbar() {
               <Link
                 key={item.href}
                 href={item.href}
+                prefetch={true}
                 onClick={() => handleLinkClick(item.href)}
                 className={`flex items-center gap-1.5 xl:gap-2 px-3 xl:px-3.5 py-2 rounded-[10px] text-xs xl:text-sm font-semibold whitespace-nowrap shrink-0 transition-all ${
                   isActive

@@ -44,10 +44,36 @@ const SELECTIVE_LISTING_FIELDS = {
   updated_at: true,
 } as const;
 
+// In-memory cache server-side (TTL 30 detik) untuk mempercepat perpindahan rute antar halaman
+let defaultListingsCache: { data: ListingItem[]; expiresAt: number } | null = null;
+let categoryCountsCache: { data: Record<string, number>; expiresAt: number } | null = null;
+const CACHE_TTL_MS = 30_000;
+
+export function invalidateListingsCache() {
+  defaultListingsCache = null;
+  categoryCountsCache = null;
+}
+
 export async function getListings(
   filters?: ListingFilters,
   bounds?: BoundsFilter
 ): Promise<ListingItem[]> {
+  const isDefaultQuery =
+    !bounds &&
+    (!filters ||
+      (!filters.query &&
+        !filters.city &&
+        (!filters.property_type || filters.property_type === "Semua") &&
+        !filters.transaction_type &&
+        !filters.verification_tier &&
+        !filters.bedrooms &&
+        !filters.min_price &&
+        !filters.max_price));
+
+  if (isDefaultQuery && defaultListingsCache && Date.now() < defaultListingsCache.expiresAt) {
+    return defaultListingsCache.data;
+  }
+
   const isMockOnly =
     process.env.NEXT_PUBLIC_USE_MOCK_DATA === "true" ||
     !process.env.DATABASE_URL ||
@@ -109,7 +135,7 @@ export async function getListings(
         });
 
         if (dbListings?.length) {
-          return dbListings.map((l) => ({
+          const mapped = dbListings.map((l) => ({
             ...l,
             price: Number(l.price),
             deposit: l.deposit ? Number(l.deposit) : 0,
@@ -127,6 +153,12 @@ export async function getListings(
             rejection_reason: l.rejection_reason ?? null,
             owner_email: l.owner_email ?? null,
           }));
+
+          if (isDefaultQuery) {
+            defaultListingsCache = { data: mapped, expiresAt: Date.now() + CACHE_TTL_MS };
+          }
+
+          return mapped;
         }
       }
     } catch {
@@ -242,6 +274,10 @@ export async function getListingBySlug(slug: string): Promise<ListingItem | null
  * Jika database tidak tersedia atau dalam mode mock, dilakukan fallback ke MOCK_LISTINGS.
  */
 export async function getCategoryCounts(): Promise<Record<string, number>> {
+  if (categoryCountsCache && Date.now() < categoryCountsCache.expiresAt) {
+    return categoryCountsCache.data;
+  }
+
   const isMockOnly =
     process.env.NEXT_PUBLIC_USE_MOCK_DATA === "true" ||
     !process.env.DATABASE_URL ||
@@ -273,6 +309,7 @@ export async function getCategoryCounts(): Promise<Record<string, number>> {
             counts[g.property_type] = g._count.id;
           }
         }
+        categoryCountsCache = { data: counts, expiresAt: Date.now() + CACHE_TTL_MS };
         return counts;
       }
     } catch (err) {
@@ -293,6 +330,7 @@ export async function getCategoryCounts(): Promise<Record<string, number>> {
       fallbackCounts[item.property_type] = (fallbackCounts[item.property_type] || 0) + 1;
     }
   }
+  categoryCountsCache = { data: fallbackCounts, expiresAt: Date.now() + CACHE_TTL_MS };
   return fallbackCounts;
 }
 

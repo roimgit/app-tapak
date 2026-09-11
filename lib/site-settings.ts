@@ -68,7 +68,7 @@ export const DEFAULT_SITE_SETTINGS: SiteSettings = {
     logoDotColor: "#3D77EE",
     logoImageUrl: "",
     tagline: "Platform Properti Terverifikasi & Transparan",
-    badgeText: "Verified Homes",
+    badgeText: "",
     faviconUrl: "/favicon.ico",
   },
   hero: {

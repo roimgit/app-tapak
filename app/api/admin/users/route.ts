@@ -1,8 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 
+let isSuperAdminEnsured = false;
+
 // Pastikan akun super admin default selalu tersedia di database
 async function ensureDefaultSuperAdmin() {
+  if (isSuperAdminEnsured) return;
   try {
     const existing = await prisma.user.findUnique({
       where: { email: "admin@admin.com" },
@@ -18,14 +21,32 @@ async function ensureDefaultSuperAdmin() {
         },
       });
     }
+    isSuperAdminEnsured = true;
   } catch (err) {
     console.error("[USERS_API] Error ensuring default admin:", err);
   }
 }
 
+// In-memory cache daftar pengguna (TTL 30 detik)
+let usersCache: { users: any[]; total: number; expiresAt: number } | null = null;
+const CACHE_TTL_MS = 30_000;
+
+function invalidateUsersCache() {
+  usersCache = null;
+}
+
 // GET: Ambil seluruh akun pengguna & status hak akses
 export async function GET() {
   try {
+    const now = Date.now();
+    if (usersCache && now < usersCache.expiresAt) {
+      return NextResponse.json({
+        success: true,
+        users: usersCache.users,
+        total: usersCache.total,
+      });
+    }
+
     await ensureDefaultSuperAdmin();
 
     const users = await prisma.user.findMany({
@@ -41,6 +62,12 @@ export async function GET() {
         updated_at: true,
       },
     });
+
+    usersCache = {
+      users,
+      total: users.length,
+      expiresAt: now + CACHE_TTL_MS,
+    };
 
     return NextResponse.json({
       success: true,
@@ -91,6 +118,7 @@ export async function POST(request: NextRequest) {
       },
     });
 
+    invalidateUsersCache();
     return NextResponse.json({
       success: true,
       user: newUser,
@@ -145,6 +173,7 @@ export async function PATCH(request: NextRequest) {
       data: updateData,
     });
 
+    invalidateUsersCache();
     return NextResponse.json({
       success: true,
       user: updatedUser,
@@ -188,6 +217,7 @@ export async function DELETE(request: NextRequest) {
     }
 
     await prisma.user.delete({ where: { id } });
+    invalidateUsersCache();
 
     return NextResponse.json({
       success: true,

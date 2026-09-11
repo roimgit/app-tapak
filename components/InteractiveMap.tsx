@@ -254,10 +254,19 @@ export default function InteractiveMap({
               ${safeDistrict}, ${safeCity}
             </p>
 
-            <div style="display: flex; align-items: center; gap: 8px; padding: 6px 0; border-top: 1px solid #F1F5F9; border-bottom: 1px solid #F1F5F9; margin-bottom: 8px; font-size: 11px; color: #64748B; font-weight: 500;">
-              <span>🛏️ ${item.bedrooms} KT</span>
-              <span>🚿 ${item.bathrooms} KM</span>
-              <span>📐 ${item.area_sqm} m²</span>
+            <div style="display: flex; align-items: center; gap: 12px; padding: 6px 0; border-top: 1px solid #F1F5F9; border-bottom: 1px solid #F1F5F9; margin-bottom: 8px; font-size: 11px; color: #64748B; font-weight: 500;">
+              <span style="display: inline-flex; align-items: center; gap: 4px;">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#64748B" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 4v16"/><path d="M2 8h18a2 2 0 0 1 2 2v10"/><path d="M2 17h20"/><path d="M6 8v9"/></svg>
+                ${item.bedrooms} KT
+              </span>
+              <span style="display: inline-flex; align-items: center; gap: 4px;">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#64748B" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6 6.5 3.5a1.5 1.5 0 0 0-1-.5C4.683 3 4 3.683 4 4.5V17a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-5"/><line x1="10" x2="8" y1="5" y2="7"/><line x1="2" x2="22" y1="12" y2="12"/></svg>
+                ${item.bathrooms} KM
+              </span>
+              <span style="display: inline-flex; align-items: center; gap: 4px;">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#64748B" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 3 21 3 21 9"/><polyline points="9 21 3 21 3 15"/><line x1="21" x2="14" y1="3" y2="10"/><line x1="3" x2="10" y1="21" y2="14"/></svg>
+                ${item.area_sqm} m²
+              </span>
             </div>
 
             <div style="display: flex; align-items: center; justify-content: space-between; gap: 6px;">
@@ -298,7 +307,43 @@ export default function InteractiveMap({
     });
   }
 
-  // Update active marker styling, open popup, and smoothly fly to coordinates when selected
+  const prevSelectedIdRef = useRef<string | null>(null);
+
+  // Efek kamera flyTo: HANYA dipanggil saat selectedListingId benar-benar berganti ke ID baru
+  useEffect(() => {
+    if (selectedListingId) {
+      if (selectedListingId !== prevSelectedIdRef.current) {
+        prevSelectedIdRef.current = selectedListingId;
+
+        const targetItem = listings.find((l) => l.id === selectedListingId);
+        const targetMarker = markersRef.current[selectedListingId];
+
+        if (targetItem && mapInstanceRef.current) {
+          const currentCenter = mapInstanceRef.current.getCenter();
+          const dist = Math.hypot(
+            currentCenter.lat - targetItem.latitude,
+            currentCenter.lng - targetItem.longitude
+          );
+
+          // Terbangkan kamera dengan mulus hanya jika jarak cukup jauh atau zoom berbeda
+          if (dist > 0.0001 || mapInstanceRef.current.getZoom() !== 15) {
+            mapInstanceRef.current.flyTo([targetItem.latitude, targetItem.longitude], 15, {
+              duration: 0.5,
+              easeLinearity: 0.25,
+            });
+          }
+        }
+
+        if (targetMarker && !targetMarker.isPopupOpen()) {
+          targetMarker.openPopup();
+        }
+      }
+    } else {
+      prevSelectedIdRef.current = null;
+    }
+  }, [selectedListingId, listings]);
+
+  // Efek visual styling pin & popup hover: TIDAK PERNAH memicu flyTo atau menggerakkan zoom kamera peta
   useEffect(() => {
     const activeId = hoveredListingId || selectedListingId;
 
@@ -321,26 +366,13 @@ export default function InteractiveMap({
       }
     });
 
-    if (selectedListingId) {
-      const targetItem = listings.find((l) => l.id === selectedListingId);
-      const targetMarker = markersRef.current[selectedListingId];
-
-      if (targetItem && mapInstanceRef.current) {
-        mapInstanceRef.current.flyTo([targetItem.latitude, targetItem.longitude], 15, {
-          duration: 0.7,
-          easeLinearity: 0.25,
-        });
-      }
-
+    // Buka popup jika di-hover (hanya saat tidak ada pin yang sedang terkunci fokus)
+    if (hoveredListingId && !selectedListingId) {
+      const targetMarker = markersRef.current[hoveredListingId];
       if (targetMarker && !targetMarker.isPopupOpen()) {
         targetMarker.openPopup();
       }
-    } else if (hoveredListingId && markersRef.current[hoveredListingId]) {
-      const targetMarker = markersRef.current[hoveredListingId];
-      if (!targetMarker.isPopupOpen()) {
-        targetMarker.openPopup();
-      }
-    } else if (!activeId && mapInstanceRef.current) {
+    } else if (!hoveredListingId && !selectedListingId && mapInstanceRef.current) {
       mapInstanceRef.current.closePopup();
     }
   }, [hoveredListingId, selectedListingId, listings]);

@@ -12,7 +12,7 @@ import {
   Trash2,
   Check,
 } from "lucide-react";
-import { PackageDefinition } from "@/lib/package-settings";
+import { PackageDefinition } from "@/lib/package-definitions";
 
 export default function PackageSettingsClient() {
   const [packages, setPackages] = useState<PackageDefinition[]>([]);

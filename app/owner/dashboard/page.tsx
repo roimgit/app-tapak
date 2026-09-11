@@ -1,7 +1,6 @@
 import React from "react";
 import type { Metadata } from "next";
 import { prisma } from "@/lib/prisma";
-import { CheckCircle2 } from "lucide-react";
 import DashboardHeaderArea from "@/components/owner/DashboardHeaderArea";
 import QuotaStatusHeroCard from "@/components/owner/QuotaStatusHeroCard";
 import KpiPerformanceRow from "@/components/owner/KpiPerformanceRow";
@@ -9,7 +8,7 @@ import ActivePropertiesTable from "@/components/owner/ActivePropertiesTable";
 import RecentLeadsFeed from "@/components/owner/RecentLeadsFeed";
 import BillingHistorySection from "@/components/owner/BillingHistorySection";
 
-import { formatRupiah } from "@/lib/utils";
+import { getCurrentOwnerEmail } from "@/lib/owner-session";
 
 export const metadata: Metadata = {
   title: "Dashboard Mitra Pemilik — Tapak. Owner Studio",
@@ -24,43 +23,118 @@ interface OwnerDashboardProps {
   }>;
 }
 
-export default async function OwnerDashboardPage({
-  searchParams,
-}: OwnerDashboardProps) {
-  const params = await searchParams;
-  const isPaymentSuccess = params.payment === "success";
-
-  // Ambil data subscription aktif, riwayat payment, dan listing aktif dari database
-  let activeSubscription = null;
-  let payments: Array<{
+// In-memory cache server-side dipisah per owner (TTL 30s)
+interface CachedOwnerDashboardData {
+  ownerName: string;
+  activeSubscription: { id: string; package_name: string; quota_total: number } | null;
+  payments: Array<{
     id: string;
     order_id: string;
     amount: unknown;
     payment_method: string;
     status: string;
     created_at: Date;
-  }> = [];
-  let activeListings: any[] = [];
+  }>;
+  activeListings: Array<{
+    id: string;
+    title: string;
+    district: string;
+    city: string;
+    area_sqm: number;
+    property_type: string;
+    price: unknown;
+    images: string[];
+  }>;
+  expiresAt: number;
+}
 
-  try {
-    activeSubscription = await prisma.subscription.findFirst({
-      where: { user_id: { in: ["admin@admin.com", "owner_demo"] }, is_active: true },
-      orderBy: { created_at: "desc" },
-    });
+const ownerDashboardCache = new Map<string, CachedOwnerDashboardData>();
+const CACHE_TTL_MS = 30_000;
 
-    payments = await prisma.payment.findMany({
-      where: { user_id: { in: ["admin@admin.com", "owner_demo"] } },
-      orderBy: { created_at: "desc" },
-      take: 6,
-    });
+export default async function OwnerDashboardPage({
+  searchParams,
+}: OwnerDashboardProps) {
+  const params = await searchParams;
+  const isPaymentSuccess = params.payment === "success";
+  const ownerEmail = await getCurrentOwnerEmail();
 
-    activeListings = await prisma.listing.findMany({
-      where: { is_available: true },
-      take: 6,
-      orderBy: { created_at: "desc" },
-    });
-  } catch (err) {
-    console.error("Dashboard data fetch fallback:", err);
+  const now = Date.now();
+  let ownerName = ownerEmail.includes("@") ? ownerEmail.split("@")[0] : ownerEmail;
+  let activeSubscription: CachedOwnerDashboardData["activeSubscription"] = null;
+  let payments: CachedOwnerDashboardData["payments"] = [];
+  let activeListings: CachedOwnerDashboardData["activeListings"] = [];
+
+  const cached = ownerDashboardCache.get(ownerEmail);
+  if (cached && now < cached.expiresAt && !isPaymentSuccess) {
+    ownerName = cached.ownerName;
+    activeSubscription = cached.activeSubscription;
+    payments = cached.payments;
+    activeListings = cached.activeListings;
+  } else {
+    try {
+      const [ownerUser, sub, pymts, lstngs] = await Promise.all([
+        prisma.user.findUnique({
+          where: { email: ownerEmail },
+          select: { name: true, role: true },
+        }),
+        prisma.subscription.findFirst({
+          where: { user_id: { in: [ownerEmail, "admin@admin.com"] }, is_active: true },
+          orderBy: { created_at: "desc" },
+          select: { id: true, package_name: true, quota_total: true },
+        }),
+        prisma.payment.findMany({
+          where: { user_id: { in: [ownerEmail, "admin@admin.com"] } },
+          orderBy: { created_at: "desc" },
+          take: 6,
+          select: {
+            id: true,
+            order_id: true,
+            amount: true,
+            payment_method: true,
+            status: true,
+            created_at: true,
+          },
+        }),
+        prisma.listing.findMany({
+          where: {
+            owner_email: {
+              equals: ownerEmail,
+              mode: "insensitive",
+            },
+            is_available: true,
+          },
+          take: 6,
+          orderBy: { created_at: "desc" },
+          select: {
+            id: true,
+            title: true,
+            district: true,
+            city: true,
+            area_sqm: true,
+            property_type: true,
+            price: true,
+            images: true,
+          },
+        }),
+      ]);
+
+      if (ownerUser?.name) {
+        ownerName = ownerUser.name;
+      }
+      activeSubscription = sub;
+      payments = pymts;
+      activeListings = lstngs;
+
+      ownerDashboardCache.set(ownerEmail, {
+        ownerName,
+        activeSubscription: sub,
+        payments: pymts,
+        activeListings: lstngs,
+        expiresAt: now + CACHE_TTL_MS,
+      });
+    } catch (err) {
+      console.error("Dashboard data fetch fallback:", err);
+    }
   }
 
   const activePropertiesData = activeListings.map((l, idx) => ({
@@ -114,7 +188,7 @@ export default async function OwnerDashboardPage({
       )}
 
       {/* 1. Header Area & Banner Notifikasi */}
-      <DashboardHeaderArea ownerName="Super Admin" quotaAvailable={quotaAvailable} />
+      <DashboardHeaderArea ownerName={ownerName} quotaAvailable={quotaAvailable} />
 
       {/* 2. Hero Card: WIDGET STATUS KUOTA LAPAK AKTIF */}
       <QuotaStatusHeroCard

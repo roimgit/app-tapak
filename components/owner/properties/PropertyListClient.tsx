@@ -6,290 +6,27 @@ import PropertyFilterBlock, { StatusTab } from "./PropertyFilterBlock";
 import PropertyCardRow, { PropertyData } from "./PropertyCardRow";
 import PropertyMetricsRibbon from "./PropertyMetricsRibbon";
 import PropertyPagination from "./PropertyPagination";
-
-const INITIAL_PROPERTIES: PropertyData[] = [
-  {
-    id: "prop-1",
-    code: "#TPK-8821",
-    type: "Apartemen",
-    title: "Apartemen Kalibata City Studio",
-    location: "Tower Gaharu Lt. 14 • 33 m² • Full Furnished",
-    imageUrl:
-      "https://images.unsplash.com/photo-1502672260266-1c1ef2d93688?w=600&auto=format&fit=crop&q=80",
-    photoCount: 8,
-    schemaType: "SEWA BULANAN",
-    price: "Rp 4.500.000",
-    pricePeriod: "/ bln",
-    priceNote: "Deposit: Rp 4,5 jt • IPL: Rp 450 rb/bln",
-    status: "aktif",
-    statusText: "Aktif / Tayang",
-    statusNote: "Tayang sejak 12 Feb 2025",
-    tier: "GOLD",
-    views: 840,
-    leads: 14,
-    score: 92,
-    scoreLabel: "Sangat Baik",
-    slug: "studio-cozy-bsd-city-sky-house",
-  },
-  {
-    id: "prop-2",
-    code: "#TPK-8902",
-    type: "Rumah",
-    title: "Rumah Minimalis 2 Lantai BSD City",
-    location: "Cluster Greenwich Park • LT 120 / LB 95 m²",
-    imageUrl:
-      "https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?w=600&auto=format&fit=crop&q=80",
-    photoCount: 12,
-    schemaType: "DIJUAL (HAK MILIK)",
-    price: "Rp 1.850.000.000",
-    pricePeriod: "",
-    priceNote: "Sertifikat SHM • KPR Ready",
-    status: "aktif",
-    statusText: "Aktif / Tayang",
-    statusNote: "Featured Listing BSD",
-    isFeatured: true,
-    tier: "SILVER",
-    views: 1250,
-    leads: 32,
-    score: 85,
-    scoreLabel: "Optimal",
-    slug: "rumah-sudut-arsitektur-skandinavia-navapark-bsd",
-  },
-  {
-    id: "prop-3",
-    code: "#TPK-9014",
-    type: "Ruko",
-    title: "Ruko 3 Lantai Strategis Gading Serpong",
-    location: "Kawasan Bisnis Boulevard • LB 180 m²",
-    imageUrl:
-      "https://images.unsplash.com/photo-1541888946425-d0fbb186c5f7?w=600&auto=format&fit=crop&q=80",
-    photoCount: 6,
-    schemaType: "SEWA TAHUNAN",
-    price: "Rp 85.000.000",
-    pricePeriod: "/ thn",
-    priceNote: "Deposit: Rp 10 jt • Min 2 Tahun",
-    status: "review",
-    statusText: "Menunggu Review",
-    statusNote: "Estimasi proses: ≤ 24 jam",
-    tier: "REVIEW",
-    curatorNote: "Mohon lengkapi lampiran PBB tahun berjalan.",
-  },
-  {
-    id: "prop-4",
-    code: "#TPK-7740",
-    type: "Apartemen",
-    title: "Studio Grand Dhika City Bekasi",
-    location: "Tower C Lt. 8 • 28 m² • Full AC",
-    imageUrl:
-      "https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?w=600&auto=format&fit=crop&q=80",
-    photoCount: 5,
-    schemaType: "SEWA BULANAN",
-    price: "Rp 3.200.000",
-    pricePeriod: "/ bln",
-    priceNote: "Penyewa: Bpk. Aris (s.d Des 2026)",
-    status: "tersewa",
-    statusText: "Tersewa (Off-Market)",
-    statusNote: "Kontrak aktif hingga 12 Des 2026",
-    tier: "GOLD",
-    tenantInfo: "Bpk. Aris",
-  },
-  {
-    id: "prop-5",
-    code: "#TPK-1001",
-    type: "Apartemen",
-    title: "The Pakubuwono Signature 3BR Full Furnished",
-    location: "Jl. Pakubuwono VI No. 72 • 205 m²",
-    imageUrl:
-      "https://images.unsplash.com/photo-1512917774080-9991f1c4c750?w=600&auto=format&fit=crop&q=80",
-    photoCount: 10,
-    schemaType: "SEWA BULANAN",
-    price: "Rp 45.000.000",
-    pricePeriod: "/ bln",
-    priceNote: "Deposit: 1 Bulan • IPL Termasuk",
-    status: "aktif",
-    statusText: "Aktif / Tayang",
-    statusNote: "Verified Gold Partner",
-    tier: "GOLD",
-    views: 2100,
-    leads: 48,
-    score: 95,
-    scoreLabel: "Sangat Baik",
-    slug: "the-pakubuwono-signature-3br-full-furnished",
-  },
-  {
-    id: "prop-6",
-    code: "#TPK-1002",
-    type: "Rumah",
-    title: "Modern Minimalist Villa Sanur Tropical Sanctuary",
-    location: "Jl. Danau Tamblingan No. 88 • 350 m²",
-    imageUrl:
-      "https://images.unsplash.com/photo-1613977257363-707ba9348227?w=600&auto=format&fit=crop&q=80",
-    photoCount: 14,
-    schemaType: "SEWA BULANAN",
-    price: "Rp 32.000.000",
-    pricePeriod: "/ bln",
-    priceNote: "Private Pool • Daily Cleaning",
-    status: "aktif",
-    statusText: "Aktif / Tayang",
-    statusNote: "Tayang sejak 1 Jan 2026",
-    tier: "GOLD",
-    views: 1640,
-    leads: 39,
-    score: 90,
-    scoreLabel: "Sangat Baik",
-    slug: "modern-minimalist-villa-sanur-tropical-sanctuary",
-  },
-  {
-    id: "prop-7",
-    code: "#TPK-1003",
-    type: "Apartemen",
-    title: "District 8 SCBD Studio Suite High Floor",
-    location: "District 8 Senopati, Sudirman • 45 m²",
-    imageUrl:
-      "https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?w=600&auto=format&fit=crop&q=80",
-    photoCount: 7,
-    schemaType: "SEWA BULANAN",
-    price: "Rp 18.500.000",
-    pricePeriod: "/ bln",
-    priceNote: "City View SCBD • High Floor",
-    status: "aktif",
-    statusText: "Aktif / Tayang",
-    statusNote: "Featured Sudirman",
-    tier: "SILVER",
-    views: 980,
-    leads: 26,
-    score: 88,
-    scoreLabel: "Optimal",
-    slug: "district-8-scbd-studio-suite-high-floor",
-  },
-  {
-    id: "prop-8",
-    code: "#TPK-1004",
-    type: "Rumah",
-    title: "Rumah Sudut Arsitektur Skandinavia Navapark BSD",
-    location: "Cluster Lancewood, Navapark • 240 m²",
-    imageUrl:
-      "https://images.unsplash.com/photo-1580587771525-78b9dba3b914?w=600&auto=format&fit=crop&q=80",
-    photoCount: 16,
-    schemaType: "SEWA TAHUNAN",
-    price: "Rp 280.000.000",
-    pricePeriod: "/ thn",
-    priceNote: "Full Smart Home • Parkir 3 Mobil",
-    status: "aktif",
-    statusText: "Aktif / Tayang",
-    statusNote: "Verified Gold Partner",
-    tier: "GOLD",
-    views: 1420,
-    leads: 31,
-    score: 89,
-    scoreLabel: "Sangat Baik",
-    slug: "rumah-sudut-arsitektur-skandinavia-navapark-bsd",
-  },
-  {
-    id: "prop-9",
-    code: "#TPK-1005",
-    type: "Apartemen",
-    title: "Casa Verde Setiabudi Executive Loft 2BR",
-    location: "Jl. Setiabudi Tengah No. 14 • 78 m²",
-    imageUrl:
-      "https://images.unsplash.com/photo-1502005229762-ee152da92e06?w=600&auto=format&fit=crop&q=80",
-    photoCount: 6,
-    schemaType: "SEWA BULANAN",
-    price: "Rp 15.000.000",
-    pricePeriod: "/ bln",
-    priceNote: "Dekat MRT Setiabudi Astra",
-    status: "aktif",
-    statusText: "Aktif / Tayang",
-    statusNote: "Tayang sejak 28 Feb 2026",
-    tier: "BRONZE",
-    views: 720,
-    leads: 18,
-    score: 82,
-    scoreLabel: "Cukup",
-    slug: "casa-verde-setiabudi-executive-loft-2br",
-  },
-  {
-    id: "prop-10",
-    code: "#TPK-1006",
-    type: "Apartemen",
-    title: "Kost Eksklusif Senopati Co-Living Suite",
-    location: "Jl. Suryo No. 42, Senopati • 24 m²",
-    imageUrl:
-      "https://images.unsplash.com/photo-1598928506311-c55ded91a20c?w=600&auto=format&fit=crop&q=80",
-    photoCount: 9,
-    schemaType: "SEWA BULANAN",
-    price: "Rp 6.500.000",
-    pricePeriod: "/ bln",
-    priceNote: "Free WiFi, Laundry & Room Service",
-    status: "aktif",
-    statusText: "Aktif / Tayang",
-    statusNote: "Verified Co-Living",
-    tier: "SILVER",
-    views: 890,
-    leads: 23,
-    score: 86,
-    scoreLabel: "Optimal",
-    slug: "kost-eksklusif-senopati-co-living-suite",
-  },
-  {
-    id: "prop-11",
-    code: "#TPK-1007",
-    type: "Ruko",
-    title: "Ruko Komersial 3.5 Lantai Boulevard Gading Serpong",
-    location: "Boulevard Raya AA No. 12 • 220 m²",
-    imageUrl:
-      "https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?w=600&auto=format&fit=crop&q=80",
-    photoCount: 8,
-    schemaType: "SEWA TAHUNAN",
-    price: "Rp 120.000.000",
-    pricePeriod: "/ thn",
-    priceNote: "Parkir On-Street Luas • Siap Pakai",
-    status: "review",
-    statusText: "Menunggu Review",
-    statusNote: "Estimasi proses: ≤ 12 jam",
-    tier: "REVIEW",
-    curatorNote: "Verifikasi sertifikat IMB/PBG sedang divalidasi tim legal.",
-  },
-  {
-    id: "prop-12",
-    code: "#TPK-1008",
-    type: "Apartemen",
-    title: "Ciputra World 2 Jakarta Orchard Satrio 2BR",
-    location: "Jl. Prof. DR. Satrio Kav 11 • 98 m²",
-    imageUrl:
-      "https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?w=600&auto=format&fit=crop&q=80",
-    photoCount: 8,
-    schemaType: "SEWA BULANAN",
-    price: "Rp 22.000.000",
-    pricePeriod: "/ bln",
-    priceNote: "Penyewa: Ibu Ratna (s.d Nov 2026)",
-    status: "tersewa",
-    statusText: "Tersewa (Off-Market)",
-    statusNote: "Kontrak aktif hingga 10 Nov 2026",
-    tier: "GOLD",
-    tenantInfo: "Ibu Ratna",
-    slug: "ciputra-world-2-jakarta-orchard-satrio-2br",
-  },
-];
+import Link from "next/link";
+import { Building2, Plus } from "lucide-react";
 
 const ITEMS_PER_PAGE = 4;
 
 interface PropertyListClientProps {
   initialProperties?: PropertyData[];
+  ownerEmail?: string;
 }
 
-export default function PropertyListClient({ initialProperties }: PropertyListClientProps) {
+export default function PropertyListClient({
+  initialProperties = [],
+  ownerEmail,
+}: PropertyListClientProps) {
   const router = useRouter();
   const deletedIdsRef = useRef<Set<string>>(new Set());
 
-  const [properties, setProperties] = useState<PropertyData[]>(
-    initialProperties && initialProperties.length > 0 ? initialProperties : INITIAL_PROPERTIES
-  );
+  const [properties, setProperties] = useState<PropertyData[]>(initialProperties);
 
   useEffect(() => {
-    if (initialProperties && initialProperties.length > 0) {
-      setProperties(initialProperties.filter((p) => !deletedIdsRef.current.has(p.id)));
-    }
+    setProperties(initialProperties.filter((p) => !deletedIdsRef.current.has(p.id)));
   }, [initialProperties]);
 
   const [activeTab, setActiveTab] = useState<StatusTab>("semua");
@@ -453,8 +190,31 @@ export default function PropertyListClient({ initialProperties }: PropertyListCl
         counts={counts}
       />
 
-      {/* 3. Property Cards Collection */}
-      {paginatedList.length > 0 ? (
+      {/* 3. Property Cards Collection / Empty States */}
+      {properties.length === 0 ? (
+        <div className="bg-white rounded-[18px] p-8 sm:p-12 text-center border border-slate-200/80 shadow-2xs space-y-4 max-w-xl mx-auto my-4">
+          <div className="w-16 h-16 rounded-2xl bg-blue-50 text-[#3D77EE] flex items-center justify-center mx-auto border border-blue-100">
+            <Building2 className="w-8 h-8" />
+          </div>
+          <div className="space-y-1.5">
+            <h2 className="text-lg font-extrabold text-[#111827]">
+              Belum Ada Unit Properti Terdaftar
+            </h2>
+            <p className="text-xs text-slate-500 leading-relaxed max-w-md mx-auto">
+              Akun Anda <span className="font-semibold text-slate-700">({ownerEmail || "Mitra Pemilik"})</span> belum memiliki unit properti yang terdaftar di Tapak. Daftarkan hunian sewa atau jual Anda sekarang untuk mulai menjangkau ribuan calon penyewa langsung ke WhatsApp.
+            </p>
+          </div>
+          <div className="pt-2">
+            <Link
+              href="/owner/properties/new"
+              className="inline-flex items-center gap-2 px-5 py-2.5 bg-[#3D77EE] hover:bg-[#2B55AB] text-white font-bold text-xs rounded-[10px] shadow-sm transition-all active:scale-[0.98]"
+            >
+              <Plus className="w-4 h-4" />
+              <span>Tambah Properti Pertama Anda</span>
+            </Link>
+          </div>
+        </div>
+      ) : paginatedList.length > 0 ? (
         <div
           className={
             viewMode === "grid"

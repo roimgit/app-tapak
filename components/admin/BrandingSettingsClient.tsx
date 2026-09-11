@@ -318,17 +318,17 @@ export default function BrandingSettingsClient() {
 
               <div>
                 <label className="block text-xs font-bold text-[#111827] mb-1.5">
-                  Atau Input Manual URL Gambar Logo
+                  Path File / URL Logo (Otomatis Terisi dari Unggahan)
                 </label>
                 <input
-                  type="url"
+                  type="text"
                   value={logoImageUrl}
                   onChange={(e) => setLogoImageUrl(e.target.value)}
-                  placeholder="https://pub-xxxxxx.r2.dev/branding/logo.png"
-                  className="w-full px-3.5 py-2.5 rounded-[10px] bg-slate-50 border border-[#E2E8F0] text-sm text-[#111827] focus:outline-none focus:border-[#3D77EE] focus:bg-white"
+                  placeholder="/uploads/branding/logo.webp atau https://..."
+                  className="w-full px-3.5 py-2.5 rounded-[10px] bg-slate-50 border border-[#E2E8F0] text-xs sm:text-sm font-mono text-[#111827] focus:outline-none focus:border-[#3D77EE] focus:bg-white"
                 />
                 <span className="text-[11px] text-slate-400 mt-1 block">
-                  Jika dikosongkan, website akan otomatis kembali menampilkan teks wordmark default.
+                  Kolom ini otomatis terisi saat Anda mengunggah file dari folder di atas. Bisa juga diisi URL gambar eksternal.
                 </span>
               </div>
             </div>

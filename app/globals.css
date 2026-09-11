@@ -378,3 +378,72 @@
   transition: border-top-color 0.15s ease;
 }
 
+/* ==========================================================================
+   Google Translate Clean Integration Styles
+   ========================================================================== */
+/* ==========================================================================
+   Google Translate Clean Integration Styles
+   Elemen tetap hidup di DOM agar translasi bekerja, tapi di-hide dari pandangan user
+   ========================================================================== */
+body > .skiptranslate,
+body > div.skiptranslate,
+iframe.skiptranslate,
+iframe[class*="skiptranslate"],
+iframe[class*="goog"],
+iframe[class*="VIpgJd"],
+iframe[id*=":container"],
+iframe[src*="translate"],
+div[class*="VIpgJd"],
+.goog-te-banner-frame,
+iframe.goog-te-banner-frame,
+#goog-gt-tt,
+#goog-gt-vt,
+.goog-te-balloon-frame,
+.goog-tooltip,
+.goog-tooltip:hover {
+  display: none !important;
+  visibility: hidden !important;
+  height: 0px !important;
+  max-height: 0px !important;
+  width: 0px !important;
+  max-width: 0px !important;
+  opacity: 0 !important;
+  pointer-events: none !important;
+  position: absolute !important;
+  top: -9999px !important;
+  left: -9999px !important;
+  z-index: -99999 !important;
+  border: none !important;
+  margin: 0 !important;
+  padding: 0 !important;
+}
+
+html, body {
+  top: 0px !important;
+  position: static !important;
+  margin-top: 0px !important;
+  padding-top: 0px !important;
+}
+
+.goog-text-highlight {
+  background-color: transparent !important;
+  box-shadow: none !important;
+}
+
+/* Pertahankan container translate di DOM agar script Google tetap jalan, namun disembunyikan off-screen */
+#google_translate_element {
+  position: fixed !important;
+  top: -9999px !important;
+  left: -9999px !important;
+  width: 1px !important;
+  height: 1px !important;
+  opacity: 0 !important;
+  pointer-events: none !important;
+  overflow: hidden !important;
+  z-index: -9999 !important;
+}
+
+.goog-te-gadget {
+  font-size: 0px !important;
+}
+

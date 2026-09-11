@@ -4,7 +4,11 @@ import React from "react";
 import Link from "next/link";
 import { Download, Plus, ChevronRight } from "lucide-react";
 
-export default function PropertyTopHeader() {
+interface PropertyTopHeaderProps {
+  totalCount?: number;
+}
+
+export default function PropertyTopHeader({ totalCount }: PropertyTopHeaderProps) {
   return (
     <div className="flex flex-col gap-4">
       {/* Breadcrumb */}
@@ -24,7 +28,7 @@ export default function PropertyTopHeader() {
               Daftar Properti Saya
             </h1>
             <span className="px-2.5 py-0.5 rounded-full text-xs font-bold bg-blue-50 text-[#3D77EE] border border-blue-100">
-              Portofolio Pemilik
+              {typeof totalCount === "number" ? `${totalCount} Unit Terdaftar` : "Portofolio Pemilik"}
             </span>
           </div>
           <p className="text-xs sm:text-sm text-slate-500 max-w-3xl">
@@ -35,7 +39,7 @@ export default function PropertyTopHeader() {
         <div className="flex items-center gap-3 self-start lg:self-auto">
           <button
             type="button"
-            onClick={() => alert("Mengekspor data 12 properti ke format .CSV...")}
+            onClick={() => alert(`Mengekspor data ${typeof totalCount === "number" ? totalCount : ""} unit properti Anda ke format .CSV...`)}
             className="inline-flex items-center gap-2 px-4 py-2.5 bg-white text-[#111827] font-bold text-xs rounded-[10px] shadow-2xs border border-slate-200/80 hover:bg-slate-50 transition-all cursor-pointer"
           >
             <Download className="w-4 h-4 text-slate-500" />
